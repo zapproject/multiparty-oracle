@@ -8,8 +8,9 @@ contract MPOStorage{
 	
 //TODO maybe have a thresholdFull event?
 	mapping(uint => string[]) queryResponses;
-	mapping(uint256 => uint256) responseThreshold
 	mapping(address => bool) approvedAddress;
+
+	mapping(uint256 => mapping(string=>uint256) ) responseTally;
 	uint256 threshold;
 	address[] responders;
 	//Set Methods/Mutators
@@ -26,7 +27,7 @@ contract MPOStorage{
 	}
 	//Get Methods/Accessors
 	function getResponses(uint256 queryId) returns(Response[]){
-		// return responseTally[queryId];
+		 return responseTally[queryId];
 	}
 	function getThreshold(uint256 queryId) returns(uint){
 		return threshold;
