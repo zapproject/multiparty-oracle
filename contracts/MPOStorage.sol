@@ -24,7 +24,8 @@ contract MPOStorage{
 		}
 	}
 	function addResponse(uint256 queryId, string response){
-		queryResponses[queryId].push(response)
+		queryResponses[queryId].push(response);
+		responseTally[queryId][response]++;
 	}
 
 	//Get Methods/Accessors
