@@ -1,8 +1,8 @@
 pragma solidity ^0.4.19
 
 interface MPOInterface(){
-	function addResponse(uint queryId, address party, string partyResponse);
-	function setThreshold(uint queryId, uint threshold);
-	function getResponses(uint queryId);
-	function getThreshold(uint queryId);
+	function addResponse(uint256, address, string);
+	function setThreshold(uint256, uint256);
+	function getResponses(uint256);
+	function getThreshold(uint256);
 }
