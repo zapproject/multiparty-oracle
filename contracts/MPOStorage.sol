@@ -6,10 +6,12 @@ contract MPOStorage{
 
 
 //TODO maybe have a thresholdFull event?
-	mapping(uint256 => string[]) queryResponses;
+	mapping(uint256 => bytes32[]) queryResponses;
 	mapping(address => bool) approvedAddress;
+	mapping(uint256 => bool) queryFulfilled;
+	mapping(uint256 => mapping(bytes32 => uint256) ) responseTally;
+	mapping(uint256 => mapping(address => bool)) oneAddressResponse;
 
-	mapping(uint256 => mapping(string=>uint256) ) responseTally;
 	uint256 threshold;
 	address[] responders;
 	//Set Methods/Mutators
@@ -23,11 +25,14 @@ contract MPOStorage{
 			approvedAddress[parties[i]]=true;
 		}
 	}
-	function addResponse(uint256 queryId, string response){
-		queryResponses[queryId].push(response);
-		responseTally[queryId][response]++;
+	function addResponse(uint256 queryId, string response, address responder){
+		queryResponses[queryId].push(keccak256(response));
+		oneAddressResponse[queryId][responder]=true;
+		responseTally[queryId][keccak256(response)]++;
 	}
-
+	function fulfillQuery(uint queryId){
+		queryFulfilled[queryId]=true;
+	}
 	//Get Methods/Accessors
 	/* function getResponses(uint256 queryId) returns(string[]){
 		 return queryResponses[queryId];
@@ -39,7 +44,7 @@ contract MPOStorage{
 		return approvedAddress[party];
 	}
 	function getTally(uint256 queryId, string response) returns(uint256){
-		return responseTally[queryId][response];
+		return responseTally[queryId][keccak256(response)];
 
 	}
 

@@ -22,8 +22,8 @@ contract MultiPartyOracle {
   } */
 
   function submitResponse1(uint256 queryId, string response) {
-    require(stor.getAddressStatus(msg.sender));
-    stor.addResponse(queryId, response);
+    require(stor.getAddressStatus(msg.sender) && !stor.queryFulfilled(queryId));
+    stor.addResponse(queryId, response, msg.sender);
     if(stor.getTally(queryId, response) >= stor.getThreshold()) {
       //Dispatch.respond1(queryId, response);
     }
