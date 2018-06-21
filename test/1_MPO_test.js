@@ -18,6 +18,7 @@ contract('MultiPartyOracle', function (accounts) {
 	const provider1 = accounts[2];
 	const provider2 = accounts[3];
 	const provider3 = accounts[4];
+	const provider4 = accounts[5];
 
 	const spec = "Hello?";
  	const params = ["param1", "param2"];
@@ -102,6 +103,47 @@ contract('MultiPartyOracle', function (accounts) {
 		let clientLogs = await clientEvents.get();
 		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(false);
 	});
+
+	it("DISPATCH_1 - respond1() - Disallow queries from accepting more responses when the threshold has been met", async function () {
+		this.test.p1 = await Oracle.new("A");
+		this.test.p2 = await Oracle.new("C");
+		this.test.p3 = await Oracle.new("C");
+		this.test.p4 = await Oracle.new("A");
+		
+		let threshold = 2;
+
+		this.test.client = await Subscriber.new();
+
+		let p1 = this.test.p1.address;
+		let p2 = this.test.p2.address;
+		let p3 = this.test.p3.address;
+		let p4 = this.test.p4.address;
+
+		this.test.MPOStorage = await MPOStorage.new();
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3,p4], this.test.client.address, threshold);
+
+		let oracleAddr = this.test.MPO.address;
+		let query = "querydoesntmatter";
+
+
+		const MPOEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        MPOEvents.watch((err, res) => { }); 
+
+        const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        clientEvents.watch((err, res) => { }); 
+
+		await this.test.client.testQuery(oracleAddr, query, spec, params);
+
+		let logs = await MPOEvents.get();
+		let clientLogs = await clientEvents.get();
+
+		console.log(clientLogs);
+		console.log(clientLogs.length)
+
+		await expect(clientLogs.length).to.be.equal(1);
+
+	});
+
 
 		// TODO: add more test cases
 });

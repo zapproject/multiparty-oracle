@@ -20,7 +20,6 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     stor.setClient(_client);
   }
 
-
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
     //TODO: queryId will eventually be given by dispatch
 
@@ -34,12 +33,13 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
   }
 
   function callback(uint256 queryId, string response) external {
-    require(stor.getAddressStatus(msg.sender));
+    require(stor.getAddressStatus(msg.sender) );
     stor.addResponse(queryId, response);
 
     emit ReceivedResponse(queryId, msg.sender, response);
 
-    if(stor.getTally(queryId, response) >= stor.getThreshold()) {
+    if(stor.getTally(queryId, response) >= stor.getThreshold() && !stor.getQueryStatus(queryId)) {
+      stor.fulfillQuery(queryId);
       Client1(stor.getClient()).callback(queryId, response);
     }
   }
