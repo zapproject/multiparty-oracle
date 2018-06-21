@@ -46,5 +46,7 @@ contract MPOStorage{
 		return responseTally[queryId][keccak256(response)];
 
 	}
-
+	function getQueryStatus(uint256 queryId) returns(bool){
+		return queryFulfilled[queryId];
+	}
 }
