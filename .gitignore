@@ -1,0 +1,8 @@
+/.idea
+/build
+/node_modules
+package-lock.json
+.env
+parity-assets/keys/DevelopmentNetwork/dapps_history.json
+parity-assets/keys/DevelopmentNetwork/address_book.json
+.DS_Store
