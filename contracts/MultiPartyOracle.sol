@@ -39,12 +39,13 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
   }
 
   function callback(uint256 queryId, string response) external {
-    require(stor.getAddressStatus(msg.sender) && !stor.getQueryStatus(queryId));
-    stor.addResponse(queryId, response, msg.sender);
+    require(stor.getAddressStatus(msg.sender) );
+    stor.addResponse(queryId, response);
 
     emit ReceivedResponse(queryId, msg.sender, response);
 
-    if(stor.getTally(queryId, response) >= stor.getThreshold()) {
+    if(stor.getTally(queryId, response) >= stor.getThreshold() && !stor.getQueryStatus(queryId)) {
+      stor.fulfillQuery(queryId);
       Client1(stor.getClient()).callback(queryId, response);
     }
   }
