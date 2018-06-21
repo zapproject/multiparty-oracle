@@ -143,7 +143,34 @@ contract('MultiPartyOracle', function (accounts) {
 		await expect(clientLogs.length).to.be.equal(1);
 
 	});
+	it("DISPATCH_1 - respond1() - Check that the MPO only takes an input once for each query", async function () {
+		this.test.p1 = await Oracle.new("A");
+		this.test.p2 = await Oracle.new("B");
+		this.test.p3 = await Oracle.new("C");
+		let threshold = 2;
+		
+		this.test.client = await Subscriber.new();
 
+		let p1 = this.test.p1.address;
+		let p2 = this.test.p2.address;
+		let p3 = this.test.p3.address;
+		
+
+		this.test.MPOStorage = await MPOStorage.new();
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p1,p3], this.test.client.address, threshold);
+
+		let oracleAddr = this.test.MPO.address;
+
+		let query = "querydoesntmatter";
+
+        const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        clientEvents.watch((err, res) => { }); 
+
+		await this.test.client.testQuery(oracleAddr, query, spec, params);
+
+		let clientLogs = await clientEvents.get();
+		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(false);
+	});
 
 		// TODO: add more test cases
 });
