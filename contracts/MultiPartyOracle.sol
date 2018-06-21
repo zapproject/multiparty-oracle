@@ -17,10 +17,6 @@ contract MultiPartyOracle {
     stor.setThreshold(_threshold);
   }
 
-  /* function setStorageAddress(address _storageAddress) {
-    storageAddress=_storageAddress;
-  } */
-
   function submitResponse1(uint256 queryId, string response) {
     require(stor.getAddressStatus(msg.sender) && !stor.queryFulfilled(queryId));
     stor.addResponse(queryId, response, msg.sender);
@@ -29,13 +25,5 @@ contract MultiPartyOracle {
     }
   }
 
-  /* function doTheThing(uint256 queryId) returns(string) {
-    Response[] responseArr = MPOStorage.getResponses(queryId);
-    string response="";
-    while(MPOStorage.getResponses(queryId).length > 0) {
-      response += responseArr.pop().responseString;
-    }
-    return response;
-  } */
 
 }

@@ -5,12 +5,11 @@ contract MPOStorage{
 
 
 
-//TODO maybe have a thresholdFull event?
-	mapping(uint256 => bytes32[]) queryResponses;
-	mapping(address => bool) approvedAddress;
-	mapping(uint256 => bool) queryFulfilled;
-	mapping(uint256 => mapping(bytes32 => uint256) ) responseTally;
-	mapping(uint256 => mapping(address => bool)) oneAddressResponse;
+	mapping(uint256 => bytes32[]) queryResponses; // List of query responses. functionally unnecessary, used for testing purposes
+	mapping(address => bool) approvedAddress; // check if msg.sender is in global approved list of responders
+	mapping(uint256 => bool) queryFulfilled;// Threshold reached, do not accept any more responses
+	mapping(uint256 => mapping(bytes32 => uint256) ) responseTally; // Tally of each response.
+	mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
 
 	uint256 threshold;
 	address[] responders;
