@@ -4,7 +4,7 @@ const expect = require('chai')
 .use(require('chai-bignumber')(BigNumber))
 .expect;
 
-//const EVMRevert = require("./helpers/EVMRevert");
+const EVMRevert = require("./helpers/EVMRevert");
 
 
 const MPO = artifacts.require("MultiPartyOracle");
@@ -144,6 +144,25 @@ contract('MultiPartyOracle', function (accounts) {
 
 	});
 
-
 		// TODO: add more test cases
+    it("DISPATCH_1 - respond1() - Revert if threshold is less than 1.", async function () {
+        this.test.p1 = await Oracle.new("Hello World");
+        this.test.p2 = await Oracle.new("Goodbye World");
+        this.test.p3 = await Oracle.new("Hello World");
+        
+        this.test.client = await Subscriber.new();
+
+        let p1 = this.test.p1.address;
+        let p2 = this.test.p2.address;
+        let p3 = this.test.p3.address;
+        let threshold = 0;
+
+        this.test.MPOStorage = await MPOStorage.new();
+        //this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold);
+
+        // subscriber should have emitted one event
+        //var result = clientLogs[0].args["response1"];
+        await expect(MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
+    });
+
 });
