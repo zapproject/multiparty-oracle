@@ -20,12 +20,6 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     stor.setClient(_client);
   }
 
-// <<<<<<< HEAD
-//   function submitResponse1(uint256 queryId, string response) {
-//     require(stor.getAddressStatus(msg.sender) && !stor.getQueryStatus(queryId));
-//     stor.addResponse(queryId, response, msg.sender);
-// =======
-
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
     //TODO: queryId will eventually be given by dispatch
 
