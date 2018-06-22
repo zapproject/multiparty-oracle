@@ -34,8 +34,10 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
   }
 
   function callback(uint256 queryId, string response) external {
-    require(stor.getAddressStatus(msg.sender));
-    if(stor.onlyOneResponse(queryId, msg.sender)){return;}
+
+    if(!stor.getAddressStatus(msg.sender) || 
+      stor.onlyOneResponse(queryId, msg.sender)) {return;}
+
       stor.addResponse(queryId, response, msg.sender);
       emit ReceivedResponse(queryId, msg.sender, response);
     

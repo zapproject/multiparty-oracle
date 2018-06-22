@@ -10,6 +10,7 @@ const EVMRevert = require("./helpers/EVMRevert");
 const MPO = artifacts.require("MultiPartyOracle");
 const MPOStorage = artifacts.require("MPOStorage");
 const Oracle = artifacts.require("TestProvider");
+const MaliciousOracle = artifacts.require("MaliciousProvider");
 const Subscriber = artifacts.require("TestClient");
 
 contract('MultiPartyOracle', function (accounts) {
@@ -35,7 +36,7 @@ contract('MultiPartyOracle', function (accounts) {
 	}
 
 
-	it("DISPATCH_1 - respond1() - Check that we can fulfill 2/3", async function () {
+	it("MutliPartyOracle_1 - Check that we can fulfill 2/3", async function () {
 		this.test.p1 = await Oracle.new("Hello World");
 		this.test.p2 = await Oracle.new("Goodbye World");
 		this.test.p3 = await Oracle.new("Hello World");
@@ -75,7 +76,7 @@ contract('MultiPartyOracle', function (accounts) {
 
 	
 	// test that for 3 oracles if each submits a different response then no reponse will be given
-	it("DISPATCH_1 - respond1() - Check that not meeting the threshold will cause no response to be emitted", async function () {
+	it("MutliPartyOracle_2 - Check that not meeting the threshold will cause no response to be emitted", async function () {
 		this.test.p1 = await Oracle.new("A");
 		this.test.p2 = await Oracle.new("B");
 		this.test.p3 = await Oracle.new("C");
@@ -104,7 +105,7 @@ contract('MultiPartyOracle', function (accounts) {
 		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(false);
 	});
 
-	it("DISPATCH_1 - respond1() - Disallow queries from accepting more responses when the threshold has been met", async function () {
+	it("MutliPartyOracle_3 - Disallow queries from accepting more responses when the threshold has been met", async function () {
 		this.test.p1 = await Oracle.new("A");
 		this.test.p2 = await Oracle.new("C");
 		this.test.p3 = await Oracle.new("C");
@@ -143,7 +144,8 @@ contract('MultiPartyOracle', function (accounts) {
 		await expect(clientLogs.length).to.be.equal(1);
 
 	});
-	it("DISPATCH_1 - respond1() - Check that the MPO only takes an input once for each query", async function () {
+
+	it("MutliPartyOracle_4 - Check that the MPO only takes an input once for each query", async function () {
 		this.test.p1 = await Oracle.new("A");
 		this.test.p2 = await Oracle.new("C");
 		this.test.p3 = await Oracle.new("C");
@@ -176,7 +178,7 @@ contract('MultiPartyOracle', function (accounts) {
 
 
 		// TODO: add more test cases
-    it("DISPATCH_1 - respond1() - Revert if threshold is less than 1.", async function () {
+    it("MutliPartyOracle_5 - respond1() - Revert if threshold is less than 1.", async function () {
         this.test.p1 = await Oracle.new("Hello World");
         this.test.p2 = await Oracle.new("Goodbye World");
         this.test.p3 = await Oracle.new("Hello World");
@@ -189,11 +191,90 @@ contract('MultiPartyOracle', function (accounts) {
         let threshold = 0;
 
         this.test.MPOStorage = await MPOStorage.new();
-        //this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold);
 
-        // subscriber should have emitted one event
-        //var result = clientLogs[0].args["response1"];
-        await expect(MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
+        let MPOStorage_address = this.test.MPOStorage.address;
+        let address = this.test.client.address;
+
+        await expect(MPO.new(MPOStorage_address, [p1,p2,p3], address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
     });
 
+    it("MutliPartyOracle_6 - respond1() - Revert if threshold is greater than the number of responders.", async function () {
+        this.test.p1 = await Oracle.new("Hello World");
+        this.test.p2 = await Oracle.new("Goodbye World");
+        this.test.p3 = await Oracle.new("Hello World");
+        
+        this.test.client = await Subscriber.new();
+
+        let p1 = this.test.p1.address;
+        let p2 = this.test.p2.address;
+        let p3 = this.test.p3.address;
+        let threshold = 0;
+
+        this.test.MPOStorage = await MPOStorage.new();
+
+        let MPOStorage_address = this.test.MPOStorage.address;
+        let address = this.test.client.address;
+
+        await expect(MPO.new(MPOStorage_address, [p1,p2,p3], address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
+    });
+
+    it("MutliPartyOracle_7 - respond1() - Revert if number of responders is 0.", async function () {
+
+        this.test.client = await Subscriber.new();
+        let threshold = 0;
+
+        this.test.MPOStorage = await MPOStorage.new();
+
+        let MPOStorage_address = this.test.MPOStorage.address;
+        let address = this.test.client.address;
+
+        await expect(MPO.new(MPOStorage_address, [], address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
+    });
+
+	it("MulitPartyOracle_8 - Check that a malicious provider cannot stop the MulitPartyOracle from fulfilling its queries...?", async function () {
+		this.test.p1 = await Oracle.new("Hello World");
+		this.test.p2 = await Oracle.new("Goodbye World");
+		this.test.p3 = await Oracle.new("Hello World");
+
+		this.test.client = await Subscriber.new();
+
+		let p1 = this.test.p1.address;
+		let p2 = this.test.p2.address;
+		let p3 = this.test.p3.address;
+
+		let threshold = 2;
+
+		this.test.MPOStorage = await MPOStorage.new();
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold);
+
+		let oracleAddr = this.test.MPO.address;
+		let query = "querydoesntmatter";
+
+
+		//create a maclious provider
+		this.test.attacker = await MaliciousOracle.new("Attack", oracleAddr); 
+		let attacker = this.test.attacker.address;
+
+
+		const MPOEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        MPOEvents.watch((err, res) => { }); 
+
+        const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        clientEvents.watch((err, res) => { }); 
+
+		await this.test.client.testQuery(oracleAddr, query, spec, params);
+        await this.test.attacker.receive(oracleAddr, query, spec, params)
+
+		//await expect(this.test.attacker.receive(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert)
+		let logs = await MPOEvents.get();
+		let clientLogs = await clientEvents.get();
+
+		console.log(clientLogs);
+		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
+
+        // subscriber should have emitted one event
+        var result = clientLogs[0].args["response1"];
+        await expect(result).to.be.equal("Hello World");
+
+	})
 });
