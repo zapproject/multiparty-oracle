@@ -142,6 +142,9 @@ contract('MultiPartyOracle', function (accounts) {
 		console.log(clientLogs.length)
 
 		await expect(clientLogs.length).to.be.equal(1);
+		// subscriber should have emitted one event
+        var result = clientLogs[0].args["response1"];
+        await expect(result).to.be.equal("C");
 
 	});
 
@@ -174,6 +177,10 @@ contract('MultiPartyOracle', function (accounts) {
 		let clientLogs = await clientEvents.get();
 		console.log(clientLogs);
 		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
+
+		// subscriber should have emitted one event
+        var result = clientLogs[0].args["response1"];
+        await expect(result).to.be.equal("C");
 	});
 
 
