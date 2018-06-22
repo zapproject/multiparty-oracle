@@ -38,14 +38,14 @@
     "absolutePath": "/home/intern1/MultiPartyOracle/contracts/OnChainProvider.sol",
     "exportedSymbols": {
       "OnChainProvider": [
-        477
+        489
       ]
     },
-    "id": 478,
+    "id": 490,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 464,
+        "id": 476,
         "literals": [
           "solidity",
           "^",
@@ -61,9 +61,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 477,
+        "id": 489,
         "linearizedBaseContracts": [
-          477
+          489
         ],
         "name": "OnChainProvider",
         "nodeType": "ContractDefinition",
@@ -71,7 +71,7 @@
           {
             "body": null,
             "documentation": "@dev function for requesting data from on-chain provider\n @param id request id\n @param userQuery query string\n @param endpoint endpoint specifier ala 'smart_contract'\n @param endpointParams endpoint-specific params",
-            "id": 476,
+            "id": 488,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -79,15 +79,15 @@
             "name": "receive",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 474,
+              "id": 486,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 466,
+                  "id": 478,
                   "name": "id",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "326:10:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -96,7 +96,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 465,
+                    "id": 477,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "326:7:3",
@@ -110,10 +110,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 468,
+                  "id": 480,
                   "name": "userQuery",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "338:16:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -122,7 +122,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 467,
+                    "id": 479,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "338:6:3",
@@ -136,10 +136,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 470,
+                  "id": 482,
                   "name": "endpoint",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "356:16:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -148,7 +148,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 469,
+                    "id": 481,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "356:7:3",
@@ -162,10 +162,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 473,
+                  "id": 485,
                   "name": "endpointParams",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "374:24:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -175,7 +175,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 471,
+                      "id": 483,
                       "name": "bytes32",
                       "nodeType": "ElementaryTypeName",
                       "src": "374:7:3",
@@ -184,7 +184,7 @@
                         "typeString": "bytes32"
                       }
                     },
-                    "id": 472,
+                    "id": 484,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "374:9:3",
@@ -201,19 +201,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 475,
+              "id": 487,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "408:0:3"
             },
-            "scope": 477,
+            "scope": 489,
             "src": "309:100:3",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 478,
+        "scope": 490,
         "src": "26:385:3"
       }
     ],
@@ -223,14 +223,14 @@
     "absolutePath": "/home/intern1/MultiPartyOracle/contracts/OnChainProvider.sol",
     "exportedSymbols": {
       "OnChainProvider": [
-        477
+        489
       ]
     },
-    "id": 478,
+    "id": 490,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 464,
+        "id": 476,
         "literals": [
           "solidity",
           "^",
@@ -246,9 +246,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 477,
+        "id": 489,
         "linearizedBaseContracts": [
-          477
+          489
         ],
         "name": "OnChainProvider",
         "nodeType": "ContractDefinition",
@@ -256,7 +256,7 @@
           {
             "body": null,
             "documentation": "@dev function for requesting data from on-chain provider\n @param id request id\n @param userQuery query string\n @param endpoint endpoint specifier ala 'smart_contract'\n @param endpointParams endpoint-specific params",
-            "id": 476,
+            "id": 488,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -264,15 +264,15 @@
             "name": "receive",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 474,
+              "id": 486,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 466,
+                  "id": 478,
                   "name": "id",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "326:10:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -281,7 +281,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 465,
+                    "id": 477,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "326:7:3",
@@ -295,10 +295,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 468,
+                  "id": 480,
                   "name": "userQuery",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "338:16:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -307,7 +307,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 467,
+                    "id": 479,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "338:6:3",
@@ -321,10 +321,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 470,
+                  "id": 482,
                   "name": "endpoint",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "356:16:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -333,7 +333,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 469,
+                    "id": 481,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "356:7:3",
@@ -347,10 +347,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 473,
+                  "id": 485,
                   "name": "endpointParams",
                   "nodeType": "VariableDeclaration",
-                  "scope": 476,
+                  "scope": 488,
                   "src": "374:24:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -360,7 +360,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 471,
+                      "id": 483,
                       "name": "bytes32",
                       "nodeType": "ElementaryTypeName",
                       "src": "374:7:3",
@@ -369,7 +369,7 @@
                         "typeString": "bytes32"
                       }
                     },
-                    "id": 472,
+                    "id": 484,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "374:9:3",
@@ -386,19 +386,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 475,
+              "id": 487,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "408:0:3"
             },
-            "scope": 477,
+            "scope": 489,
             "src": "309:100:3",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 478,
+        "scope": 490,
         "src": "26:385:3"
       }
     ],
@@ -410,5 +410,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.0",
-  "updatedAt": "2018-06-21T22:07:12.088Z"
+  "updatedAt": "2018-06-22T15:54:47.172Z"
 }

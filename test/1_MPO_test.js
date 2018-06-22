@@ -4,7 +4,7 @@ const expect = require('chai')
 .use(require('chai-bignumber')(BigNumber))
 .expect;
 
-//const EVMRevert = require("./helpers/EVMRevert");
+const EVMRevert = require("./helpers/EVMRevert");
 
 
 const MPO = artifacts.require("MultiPartyOracle");
@@ -145,7 +145,7 @@ contract('MultiPartyOracle', function (accounts) {
 	});
 	it("DISPATCH_1 - respond1() - Check that the MPO only takes an input once for each query", async function () {
 		this.test.p1 = await Oracle.new("A");
-		this.test.p2 = await Oracle.new("B");
+		this.test.p2 = await Oracle.new("C");
 		this.test.p3 = await Oracle.new("C");
 		let threshold = 2;
 		
@@ -157,7 +157,7 @@ contract('MultiPartyOracle', function (accounts) {
 		
 
 		this.test.MPOStorage = await MPOStorage.new();
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p1,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p1,p2,p3], this.test.client.address, threshold);
 
 		let oracleAddr = this.test.MPO.address;
 
@@ -167,10 +167,33 @@ contract('MultiPartyOracle', function (accounts) {
         clientEvents.watch((err, res) => { }); 
 
 		await this.test.client.testQuery(oracleAddr, query, spec, params);
+        //await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
 
 		let clientLogs = await clientEvents.get();
-		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(false);
+		console.log(clientLogs);
+		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
 	});
 
+
 		// TODO: add more test cases
+    it("DISPATCH_1 - respond1() - Revert if threshold is less than 1.", async function () {
+        this.test.p1 = await Oracle.new("Hello World");
+        this.test.p2 = await Oracle.new("Goodbye World");
+        this.test.p3 = await Oracle.new("Hello World");
+        
+        this.test.client = await Subscriber.new();
+
+        let p1 = this.test.p1.address;
+        let p2 = this.test.p2.address;
+        let p3 = this.test.p3.address;
+        let threshold = 0;
+
+        this.test.MPOStorage = await MPOStorage.new();
+        //this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold);
+
+        // subscriber should have emitted one event
+        //var result = clientLogs[0].args["response1"];
+        await expect(MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
+    });
+
 });
