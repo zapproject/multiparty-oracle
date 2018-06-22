@@ -282,6 +282,40 @@ contract('MultiPartyOracle', function (accounts) {
         // subscriber should have emitted one event
         var result = clientLogs[0].args["response1"];
         await expect(result).to.be.equal("Hello World");
-
 	})
+
+	//test to make sure that only the client passed in MPO's constructor can make a query to the MPO
+	it("MulitPartyOracle_9 - Revert if a client that isn't passed into the MultiPartyOracle's constructor attempts to make a query.", async function () {
+		this.test.p1 = await Oracle.new("A");
+		this.test.p2 = await Oracle.new("A");
+		this.test.p3 = await Oracle.new("C");
+
+		this.test.client = await Subscriber.new();
+		this.test.client2 = await Subscriber.new();
+
+
+		let p1 = this.test.p1.address;
+		let p2 = this.test.p2.address;
+		let p3 = this.test.p3.address;
+
+		let threshold = 2;
+
+		this.test.MPOStorage = await MPOStorage.new();
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address, [p1,p2,p3], this.test.client.address, threshold);
+
+		let oracleAddr = this.test.MPO.address;
+		let query = "querydoesntmatter";
+
+		const MPOEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        MPOEvents.watch((err, res) => { }); 
+
+        const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        clientEvents.watch((err, res) => { }); 
+
+        const client2Events = this.test.client2.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        client2Events.watch((err, res) => { }); 
+
+		await expect(this.test.client2.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
+	})
+
 });

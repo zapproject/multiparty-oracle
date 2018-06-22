@@ -14,7 +14,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
   address public storageAddress;
 
   constructor(address _storageAddress, address[] _responders, address _client, uint256 _threshold) public {
-    require(_threshold>0 && _threshold < _responders.length);
+    require(_threshold>0 && _threshold <= _responders.length);
     stor = MPOStorage(_storageAddress);
     stor.setThreshold(_threshold);
     stor.setResponders(_responders);
@@ -23,7 +23,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
     //TODO: queryId will eventually be given by dispatch
-
+    require(msg.sender==stor.getClient());
     emit ReceivedQuery(userQuery, endpoint, endpointParams);
 
     // query each of the responders
