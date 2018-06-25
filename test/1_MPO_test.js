@@ -388,5 +388,50 @@ contract('MultiPartyOracle', function (accounts) {
         var result = clientLogs[1].args["response1"];
         await expect(result).to.be.equal("Hello World");
 	});
+	it("MultiPartyOracle_11 - Test client should revert if same query is called twice.", async function () {
+		this.test.p1 = await Oracle.new("Hello World");
+		this.test.p2 = await Oracle.new("Goodbye World");
+		this.test.p3 = await Oracle.new("Hello World");
+		
+		this.test.client = await Subscriber.new();
+
+		let p1 = this.test.p1.address;
+		let p2 = this.test.p2.address;
+		let p3 = this.test.p3.address;
+		let threshold = 2;
+
+		this.test.MPOStorage = await MPOStorage.new();
+
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
+		
+		let oracleAddr = this.test.MPO.address;
+
+		await this.test.MPOStorage.transferOwnership(oracleAddr);
+		this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold);
+
+		let query = "querydoesntmatter";
+
+		const MPOEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        MPOEvents.watch((err, res) => { }); 
+
+        const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        clientEvents.watch((err, res) => { }); 
+
+		await this.test.client.testQuery(oracleAddr, query, spec, params);
+		await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
+
+		let logs = await MPOEvents.get();
+		let clientLogs = await clientEvents.get();
+
+		console.log(clientLogs);
+		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
+
+        // subscriber should have emitted one event
+        var result = clientLogs[0].args["response1"];
+        await expect(result).to.be.equal("Hello World");
+
+        // var result = clientLogs[1].args["response1"];
+        // await expect(result).to.be.equal("Hello World");
+	});
 
 });
