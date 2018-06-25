@@ -1,6 +1,8 @@
 pragma solidity ^0.4.24;
 
-contract MPOStorage{
+import "./lib/ownership/Ownable.sol";
+
+contract MPOStorage is Ownable{
 
 
 
@@ -19,15 +21,15 @@ contract MPOStorage{
 
 
 	//Set Methods/Mutators
-	function setThreshold(uint256 _threshold) public {
+	function setThreshold(uint256 _threshold) external onlyOwner {
 		threshold = _threshold;
 	}
 
-	function setClient(address _client) public {
+	function setClient(address _client) external onlyOwner {
 		client = _client;
 	}
  
-	function setResponders(address[] parties) public {
+	function setResponders(address[] parties) external onlyOwner {
 		for(uint256 i=0;i<parties.length;i++){
 			responders.push(parties[i]);
 			approvedAddress[parties[i]]=true;
@@ -38,45 +40,45 @@ contract MPOStorage{
 	// 	oneAddressResponse[queryId][responder]=true;
 	// 	responseTally[queryId][keccak256(response)]++;
 	// }
-	function setQueryStatus(uint queryId, uint status) public {
+	function setQueryStatus(uint queryId, uint status) external onlyOwner {
 		queryStatus[queryId]=status;
 	}
 
-	function addResponse(uint256 queryId, string response, address party) public {
+	function addResponse(uint256 queryId, string response, address party) external onlyOwner {
 		// queryResponses[queryId].push(response);
 		responseTally[queryId][response]++;
 		oneAddressResponse[queryId][party]=true;
 	}
 	//Get Methods/Accessors
 
-	function onlyOneResponse(uint256 queryId, address party) public view returns(bool) {
+	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
 		return oneAddressResponse[queryId][party];
 	}
-	function getThreshold() public view returns(uint) { 
+	function getThreshold() external view returns(uint) { 
 		return threshold;
 	}
-	function getAddressStatus(address party) public view returns(bool){
+	function getAddressStatus(address party) external view returns(bool){
 		return approvedAddress[party];
 	}
 // 	function getTally(uint256 queryId, string response) returns(uint256){
 // 		return responseTally[queryId][keccak256(response)];
 // =======
-	function getTally(uint256 queryId, string response) public view returns(uint256){
+	function getTally(uint256 queryId, string response)external view returns(uint256){
 		return responseTally[queryId][response];
 	}
 
-	function getClient() public view returns (address){
+	function getClient() external view returns(address){
 		return client;
 	}
-	function getQueryStatus(uint256 queryId) public view returns(uint256){
+	function getQueryStatus(uint256 queryId) external view returns(uint256){
 		return queryStatus[queryId];
 	}
 
-	function getNumResponders() public view returns (uint) {
+	function getNumResponders() external view returns (uint) {
 		return responders.length;
 	}
 
-	function getResponderAddress(uint index) public view returns (address){
+	function getResponderAddress(uint index) external view returns(address){
 		return responders[index];
 	}
 }

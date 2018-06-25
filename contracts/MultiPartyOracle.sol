@@ -13,9 +13,12 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
   MPOStorage stor;
   address public storageAddress;
 
-  constructor(address _storageAddress, address[] _responders, address _client, uint256 _threshold) public {
-    require(_threshold>0 && _threshold <= _responders.length);
+  constructor(address _storageAddress) public {
     stor = MPOStorage(_storageAddress);
+  }
+
+  function setParams(address[] _responders, address _client, uint256 _threshold) public {
+    require(_threshold>0 && _threshold <= _responders.length);    
     stor.setThreshold(_threshold);
     stor.setResponders(_responders);
     stor.setClient(_client);
