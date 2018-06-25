@@ -66,4 +66,8 @@ contract TestClient is Client1{
     	OnChainProvider(oracleAddr).receive(100, query, specifier, params);
     }
 
+    function testQuery2(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external {
+        OnChainProvider(oracleAddr).receive(200, query, specifier, params);
+    }
+
 }
