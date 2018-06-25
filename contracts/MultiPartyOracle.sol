@@ -3,8 +3,9 @@ pragma solidity ^0.4.24;
 import "./MPOStorage.sol";
 import "./OnChainProvider.sol";
 import "./Client.sol";
+import "./lib/lifecycle/Destructible.sol";
 
-contract MultiPartyOracle is OnChainProvider, Client1 {
+contract MultiPartyOracle is OnChainProvider, Destructible, Client1 {
 
   event ReceivedQuery(string query, bytes32 endpoint, bytes32[] params);
 
