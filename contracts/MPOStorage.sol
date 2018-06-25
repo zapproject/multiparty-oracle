@@ -35,22 +35,17 @@ contract MPOStorage is Ownable{
 			approvedAddress[parties[i]]=true;
 		}
 	}
-	// function addResponse(uint256 queryId, string response, address responder){
-	// 	queryResponses[queryId].push(keccak256(response));
-	// 	oneAddressResponse[queryId][responder]=true;
-	// 	responseTally[queryId][keccak256(response)]++;
-	// }
+
 	function setQueryStatus(uint queryId, uint status) external onlyOwner {
 		queryStatus[queryId]=status;
 	}
 
 	function addResponse(uint256 queryId, string response, address party) external onlyOwner {
-		// queryResponses[queryId].push(response);
 		responseTally[queryId][response]++;
 		oneAddressResponse[queryId][party]=true;
 	}
-	//Get Methods/Accessors
 
+	//Get Methods/Accessors
 	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
 		return oneAddressResponse[queryId][party];
 	}
@@ -60,9 +55,7 @@ contract MPOStorage is Ownable{
 	function getAddressStatus(address party) external view returns(bool){
 		return approvedAddress[party];
 	}
-// 	function getTally(uint256 queryId, string response) returns(uint256){
-// 		return responseTally[queryId][keccak256(response)];
-// =======
+
 	function getTally(uint256 queryId, string response)external view returns(uint256){
 		return responseTally[queryId][response];
 	}

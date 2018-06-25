@@ -95,7 +95,7 @@ contract('MultiPartyOracle', function (accounts) {
 		
 
 		this.test.MPOStorage = await MPOStorage.new();
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
@@ -136,7 +136,6 @@ contract('MultiPartyOracle', function (accounts) {
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
 		this.test.MPO.setParams( [p1,p2,p3,p4], this.test.client.address, threshold);
 
-		//let oracleAddr = this.test.MPO.address;
 		let query = "querydoesntmatter";
 
 
@@ -146,12 +145,11 @@ contract('MultiPartyOracle', function (accounts) {
         const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
         clientEvents.watch((err, res) => { }); 
 
-		//await this.test.client.testQuery(oracleAddr, query, spec, params);
         await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
 
 	});
 
-	it("MultiPartyOracle_4 - Check that the MPO only takes an input once for each query", async function () {
+	it("MultiPartyOracle_4 - Check that the MPO only takes an input once from each provider for a query", async function () {
 		this.test.p1 = await Oracle.new("A");
 		this.test.p2 = await Oracle.new("C");
 		this.test.p3 = await Oracle.new("C");
@@ -165,7 +163,7 @@ contract('MultiPartyOracle', function (accounts) {
 		
 
 		this.test.MPOStorage = await MPOStorage.new();
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
@@ -176,14 +174,10 @@ contract('MultiPartyOracle', function (accounts) {
         const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
         clientEvents.watch((err, res) => { }); 
 
-		//await this.test.client.testQuery(oracleAddr, query, spec, params);
         await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
-
 	});
 
-
-		// TODO: add more test cases
-    it("MultiPartyOracle_5 - respond1() - Revert if threshold is less than 1.", async function () {
+    it("MultiPartyOracle_5 - Revert if threshold is less than 1.", async function () {
         this.test.p1 = await Oracle.new("Hello World");
         this.test.p2 = await Oracle.new("Goodbye World");
         this.test.p3 = await Oracle.new("Hello World");
@@ -199,16 +193,15 @@ contract('MultiPartyOracle', function (accounts) {
 
         let MPOStorage_address = this.test.MPOStorage.address;
         let address = this.test.client.address;
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address)
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
 
-		//this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold);
         await expect(this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
     });
 
-    it("MultiPartyOracle_6 - respond1() - Revert if threshold is greater than the number of responders.", async function () {
+    it("MultiPartyOracle_6 - Revert if threshold is greater than the number of responders.", async function () {
         this.test.p1 = await Oracle.new("Hello World");
         this.test.p2 = await Oracle.new("Goodbye World");
         this.test.p3 = await Oracle.new("Hello World");
@@ -224,16 +217,15 @@ contract('MultiPartyOracle', function (accounts) {
 
         let MPOStorage_address = this.test.MPOStorage.address;
         let address = this.test.client.address;
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
 
-		// this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold);
         await expect(this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
     });
 
-    it("MultiPartyOracle_7 - respond1() - Revert if number of responders is 0.", async function () {
+    it("MultiPartyOracle_7 - Revert if number of responders is 0.", async function () {
 
         this.test.client = await Subscriber.new();
         let threshold = 0;
@@ -242,7 +234,7 @@ contract('MultiPartyOracle', function (accounts) {
 
         let MPOStorage_address = this.test.MPOStorage.address;
         let address = this.test.client.address;
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
@@ -250,7 +242,7 @@ contract('MultiPartyOracle', function (accounts) {
         await expect(this.test.MPO.setParams( [], this.test.client.address, threshold)).to.be.eventually.rejectedWith(EVMRevert);
     });
 
-	it("MultiPartyOracle_8 - Check that a malicious provider cannot stop the MultiPartyOracle from fulfilling its queries...?", async function () {
+	it("MultiPartyOracle_8 - Check that a malicious provider cannot call MultiPartyOracle's callback.", async function () {
 		this.test.p1 = await Oracle.new("Hello World");
 		this.test.p2 = await Oracle.new("Goodbye World");
 		this.test.p3 = await Oracle.new("Hello World");
@@ -264,14 +256,13 @@ contract('MultiPartyOracle', function (accounts) {
 		let threshold = 2;
 
 		this.test.MPOStorage = await MPOStorage.new();
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
 
 		this.test.MPO.setParams( [p1,p2,p3], this.test.client.address, threshold);
 		let query = "querydoesntmatter";
-
 
 		//create a maclious provider
 		this.test.attacker = await MaliciousOracle.new("Attack", oracleAddr); 
@@ -285,20 +276,8 @@ contract('MultiPartyOracle', function (accounts) {
         clientEvents.watch((err, res) => { }); 
 
 		await this.test.client.testQuery(oracleAddr, query, spec, params);
-        //await this.test.attacker.receive(oracleAddr, query, spec, params)
+        
         await expect(this.test.attacker.receive(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
-
-		//await expect(this.test.attacker.receive(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert)
-		// let logs = await MPOEvents.get();
-		// let clientLogs = await clientEvents.get();
-
-		// console.log(clientLogs);
-		// await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
-
-
-        // subscriber should have emitted one event
-        // var result = clientLogs[0].args["response1"];
-        // await expect(result).to.be.equal("Hello World");
 	})
 
 		//test to make sure that only the client passed in MPO's constructor can make a query to the MPO
@@ -310,12 +289,6 @@ contract('MultiPartyOracle', function (accounts) {
 		this.test.client = await Subscriber.new();
 		this.test.client2 = await Subscriber.new();
 
-
-  //       // subscriber should have emitted one event
-  //       var result = clientLogs[0].args["response1"];
-  //       await expect(result).to.be.equal("Hello World");
-
-
 		let p1 = this.test.p1.address;
 		let p2 = this.test.p2.address;
 		let p3 = this.test.p3.address;
@@ -323,7 +296,7 @@ contract('MultiPartyOracle', function (accounts) {
 		let threshold = 2;
 
 		this.test.MPOStorage = await MPOStorage.new();
-		this.test.MPO = await MPO.new(this.test.MPOStorage.address)//, [p1,p2,p3], this.test.client.address, threshold);
+		this.test.MPO = await MPO.new(this.test.MPOStorage.address);
 
 		let oracleAddr = this.test.MPO.address;
 		await this.test.MPOStorage.transferOwnership(oracleAddr);
@@ -388,6 +361,7 @@ contract('MultiPartyOracle', function (accounts) {
         var result = clientLogs[1].args["response1"];
         await expect(result).to.be.equal("Hello World");
 	});
+
 	it("MultiPartyOracle_11 - Test client should revert if same query is called twice.", async function () {
 		this.test.p1 = await Oracle.new("Hello World");
 		this.test.p2 = await Oracle.new("Goodbye World");
@@ -429,9 +403,5 @@ contract('MultiPartyOracle', function (accounts) {
         // subscriber should have emitted one event
         var result = clientLogs[0].args["response1"];
         await expect(result).to.be.equal("Hello World");
-
-        // var result = clientLogs[1].args["response1"];
-        // await expect(result).to.be.equal("Hello World");
 	});
-
 });

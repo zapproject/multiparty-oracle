@@ -27,29 +27,24 @@ contract MultiPartyOracle is OnChainProvider, Destructible, Client1 {
 
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
     //TODO: queryId will eventually be given by dispatch
-    require(msg.sender==stor.getClient());
-    //MAYBE: Break for loop if it becomes impossible to fulfill threshold?
-    //example: if threshold of 3 has not been fulfilled after 2/3 parties respond, revert
-    emit ReceivedQuery(userQuery, endpoint, endpointParams);
-    require(stor.getQueryStatus(id)==0);
+    require(msg.sender==stor.getClient()&&
+            stor.getQueryStatus(id)==0);
+
     stor.setQueryStatus(id,1);
     // query each of the responders
     for(uint i=0; i<stor.getNumResponders(); i++){      
       OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams);
-      
     }
-
   }
 
   function callback(uint256 queryId, string response) external {
-      require(stor.getAddressStatus(msg.sender) && 
-            !stor.onlyOneResponse(queryId, msg.sender)&&
-            stor.getQueryStatus(queryId) == 1);
+    require(stor.getAddressStatus(msg.sender) && 
+          !stor.onlyOneResponse(queryId, msg.sender)&&
+          stor.getQueryStatus(queryId) == 1);
 
-      stor.addResponse(queryId, response, msg.sender);
-      emit ReceivedResponse(queryId, msg.sender, response);
+    stor.addResponse(queryId, response, msg.sender);
+    emit ReceivedResponse(queryId, msg.sender, response);
     
-
     if(stor.getTally(queryId, response) >= stor.getThreshold()) {
       stor.setQueryStatus(queryId, 2);
       Client1(stor.getClient()).callback(queryId, response);
