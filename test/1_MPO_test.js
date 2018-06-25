@@ -133,18 +133,19 @@ contract('MultiPartyOracle', function (accounts) {
         const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
         clientEvents.watch((err, res) => { }); 
 
-		await this.test.client.testQuery(oracleAddr, query, spec, params);
+		//await this.test.client.testQuery(oracleAddr, query, spec, params);
+        await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
 
-		let logs = await MPOEvents.get();
-		let clientLogs = await clientEvents.get();
+		// let logs = await MPOEvents.get();
+		// let clientLogs = await clientEvents.get();
 
-		console.log(clientLogs);
-		console.log(clientLogs.length)
+		// console.log(clientLogs);
+		// console.log(clientLogs.length)
 
-		await expect(clientLogs.length).to.be.equal(1);
-		// subscriber should have emitted one event
-        var result = clientLogs[0].args["response1"];
-        await expect(result).to.be.equal("C");
+		// await expect(clientLogs.length).to.be.equal(1);
+		// // subscriber should have emitted one event
+  //       var result = clientLogs[0].args["response1"];
+  //       await expect(result).to.be.equal("C");
 
 	});
 
@@ -171,16 +172,16 @@ contract('MultiPartyOracle', function (accounts) {
         const clientEvents = this.test.client.allEvents({ fromBlock: 0, toBlock: 'latest' });
         clientEvents.watch((err, res) => { }); 
 
-		await this.test.client.testQuery(oracleAddr, query, spec, params);
-        //await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
+		//await this.test.client.testQuery(oracleAddr, query, spec, params);
+        await expect(this.test.client.testQuery(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
 
-		let clientLogs = await clientEvents.get();
-		console.log(clientLogs);
-		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
+		// let clientLogs = await clientEvents.get();
+		// console.log(clientLogs);
+		// await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
 
 		// subscriber should have emitted one event
-        var result = clientLogs[0].args["response1"];
-        await expect(result).to.be.equal("C");
+        // var result = clientLogs[0].args["response1"];
+        // await expect(result).to.be.equal("C");
 	});
 
 
@@ -270,18 +271,19 @@ contract('MultiPartyOracle', function (accounts) {
         clientEvents.watch((err, res) => { }); 
 
 		await this.test.client.testQuery(oracleAddr, query, spec, params);
-        await this.test.attacker.receive(oracleAddr, query, spec, params)
+        //await this.test.attacker.receive(oracleAddr, query, spec, params)
+        await expect(this.test.attacker.receive(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert);
 
 		//await expect(this.test.attacker.receive(oracleAddr, query, spec, params)).to.be.eventually.rejectedWith(EVMRevert)
-		let logs = await MPOEvents.get();
-		let clientLogs = await clientEvents.get();
+		// let logs = await MPOEvents.get();
+		// let clientLogs = await clientEvents.get();
 
-		console.log(clientLogs);
-		await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
+		// console.log(clientLogs);
+		// await expect(isEventReceived(clientLogs, "Result1")).to.be.equal(true);
 
-        // subscriber should have emitted one event
-        var result = clientLogs[0].args["response1"];
-        await expect(result).to.be.equal("Hello World");
+  //       // subscriber should have emitted one event
+  //       var result = clientLogs[0].args["response1"];
+  //       await expect(result).to.be.equal("Hello World");
 
 	})
 });
