@@ -37,7 +37,7 @@ contract('MultiPartyOracle', function (accounts) {
 	}
 
 
-	it("MultiPartyOracle_1 - Check that we can fulfill 2/3", async function () {
+	it("MultiPartyOracle_1 - Check that we threshold is met.", async function () {
 		this.test.p1 = await Oracle.new("Hello World");
 		this.test.p2 = await Oracle.new("Goodbye World");
 		this.test.p3 = await Oracle.new("Hello World");
