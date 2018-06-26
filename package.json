@@ -1,0 +1,31 @@
+{
+  "name": "MultiPartyOracle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "big-number": "^1.0.0",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "openzeppelin-solidity": "1.10.0",
+    "scrypt": "^6.0.3",
+    "secp256k1": "^3.5.0",
+    "truffle": "^4.1.12",
+    "truffle-hdwallet-provider-privkey": "^0.2.0",
+    "uuid-parse": "^1.0.0"
+  }
+}
