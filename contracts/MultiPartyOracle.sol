@@ -5,6 +5,10 @@ import "./OnChainProvider.sol";
 import "./Client.sol";
 import "./lib/lifecycle/Destructible.sol";
 
+import "./platform/dispatch/DispatchInterface.sol";
+import "./platform/bondage/BondageInterface.sol";
+import "./platform/registry/RegistryInterface.sol";
+
 contract MultiPartyOracle is OnChainProvider, Destructible, Client1 {
 
   event ReceivedQuery(string query, bytes32 endpoint, bytes32[] params);
@@ -29,11 +33,12 @@ contract MultiPartyOracle is OnChainProvider, Destructible, Client1 {
     //TODO: queryId will eventually be given by dispatch
     require(msg.sender==stor.getClient()&&
             stor.getQueryStatus(id)==0);
-
+    emit ReceivedQuery(userQuery, endpoint, endpointParams);
     stor.setQueryStatus(id,1);
     // query each of the responders
-    for(uint i=0; i<stor.getNumResponders(); i++){      
-      OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams);
+    for(uint i=0; i<stor.getNumResponders(); i++){     
+      DispatchInterface(stor.getClient()).query(stor.getResponderAddress(i), userQuery, endpoint, endpointParams,true,true);
+      //OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams);
     }
   }
 
@@ -47,7 +52,8 @@ contract MultiPartyOracle is OnChainProvider, Destructible, Client1 {
     
     if(stor.getTally(queryId, response) >= stor.getThreshold()) {
       stor.setQueryStatus(queryId, 2);
-      Client1(stor.getClient()).callback(queryId, response);
+      DispatchInterface(stor.getClient()).respond1(queryId,response);
+      //Client1(stor.getClient()).callback(queryId, response);
     }
   }
 }
