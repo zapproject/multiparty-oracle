@@ -122,7 +122,7 @@ contract Dispatch is Destructible, DispatchInterface {
     /// @dev Called upon data-provider request fulfillment
     function fulfillQuery(uint256 id) internal returns (bool) {
 
-        require(stor.getStatus(id) == DispatchStorage.Status.Pending);
+        require(stor.getStatus(id) == DispatchStorage.Status.Pending, "STATUS ID ERROR");
 
         address subscriber = stor.getSubscriber(id);
         address provider = stor.getProvider(id);

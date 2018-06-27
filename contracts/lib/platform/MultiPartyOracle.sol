@@ -12,8 +12,10 @@ import "../../platform/registry/RegistryInterface.sol";
 import "../../platform/dispatch/DispatchInterface.sol";
 
 contract MultiPartyOracle is OnChainProvider, Client1 {
-  event RecievedQuery(string query, bytes32 endpoint, bytes32[] params);
+  event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
   event ReceivedResponse(uint256 queryId, address responder, string response);
+
+    event Result1(uint256 id, string response1);
     //event TEST(uint res, bytes32 b, string s);
 
     bytes32 public spec1 = "Hello?";
@@ -23,23 +25,25 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     uint[] parts = [0, 1000000000];
     uint[] dividers = [1]; 
 
+    DispatchInterface dispatch;
     RegistryInterface registry;
     MPOStorage stor;
     address public storageAddress;
     
     // middleware function for handling queries
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
-        emit RecievedQuery(userQuery, endpoint, endpointParams);
+        emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
         if(onchainSubscriber) {
             bytes32 hash = keccak256(endpoint);
 
-            if(hash == keccak256(spec1)) {
-                endpoint1(id, userQuery, endpointParams);
-                stor.setQueryStatus(id,1);
+            if(hash == spec1) {
+                //endpoint1(id, userQuery, endpointParams);
+                //stor.setQueryStatus(id,1);
 
                 // query each of the responders
                 for(uint i=0; i<stor.getNumResponders(); i++) {      
-                  OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams, true);
+                  dispatch.query(stor.getResponderAddress(i),userQuery,endpoint,endpointParams, true, true);
+                  //OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams, true);
                 }
             } 
             else {
@@ -47,9 +51,10 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
             }
         }
   }
-    constructor(address registryAddress, address mpoStorageAddress) public{
+    constructor(address registryAddress, address dispatchAddress, address mpoStorageAddress) public{
 
         registry = RegistryInterface(registryAddress);
+        dispatch = DispatchInterface(dispatchAddress);
         stor = MPOStorage(mpoStorageAddress);
 
         // initialize in registry
@@ -87,16 +92,22 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
     function callback(uint256 queryId, string response) external {
         //require(stor.getAddressStatus(msg.sender) && !stor.onlyOneResponse(queryId, msg.sender) && stor.getQueryStatus(queryId) == 1);
-
-        stor.addResponse(queryId, response, msg.sender);
-        emit ReceivedResponse(queryId, msg.sender, response);
+        emit Result1(queryId, response);
+        // stor.addResponse(queryId, response, msg.sender);
+        // emit ReceivedResponse(queryId, msg.sender, response);
     
-        if(stor.getTally(queryId, response) >= stor.getThreshold()) {
-            stor.setQueryStatus(queryId, 2);
-            //endpoint1(queryId, )
-            Dispatch(msg.sender).respond1(queryId, response);
-        }
+        // if(stor.getTally(queryId, response) >= stor.getThreshold()) {
+        //     stor.setQueryStatus(queryId, 2);
+        //     //endpoint1(queryId, )
+        //     Dispatch(msg.sender).respond1(queryId, response);
+        // }
   }
+
+    function testQuery(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external {
+        //emit RecievedQuery(query, specifier, params);
+        //emit RecievedQuery(query, specifier, params, msg.sender);
+        dispatch.query(oracleAddr, query, specifier, params, true, true);
+    }
 
 }
 

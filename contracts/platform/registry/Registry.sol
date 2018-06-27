@@ -47,7 +47,7 @@ contract Registry is Destructible, RegistryInterface {
         public
         returns (bool)
     {
-        require(getProviderPublicKey(msg.sender) == 0);
+        require(getProviderPublicKey(msg.sender) == 0, "REGISTRY ERROR: PUBLIC KEY");
         stor.createOracle(msg.sender, publicKey, title);
         if(endpoint != 0) setEndpointParams(endpoint, endpointParams);
         stor.addOracle(msg.sender);
@@ -71,9 +71,9 @@ contract Registry is Destructible, RegistryInterface {
         returns (bool)
     {
         // Provider must be initiated
-        require(stor.getPublicKey(msg.sender) != 0);
+        require(stor.getPublicKey(msg.sender) != 0, "REGISTRY: GET PUBLIC KEY ERROR");
         // Can't reset their curve
-        require(stor.getCurveUnset(msg.sender, endpoint));
+        require(stor.getCurveUnset(msg.sender, endpoint), "REGISTRY: CURVE ERROR");
 
         stor.setCurve(msg.sender, endpoint, constants, parts, dividers);
         emit NewCurve(msg.sender, endpoint, constants, parts, dividers);

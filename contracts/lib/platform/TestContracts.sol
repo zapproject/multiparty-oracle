@@ -8,7 +8,7 @@ import "./OnChainProvider.sol";
 import "../ERC20.sol";
 
 contract TestProvider is OnChainProvider {
-	event RecievedQuery(string query, bytes32 endpoint, bytes32[] params);
+	event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
 
     event TEST(uint res, bytes32 b, string s);
 
@@ -32,8 +32,18 @@ contract TestProvider is OnChainProvider {
 
     // middleware function for handling queries
 	function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
-        emit RecievedQuery(userQuery, endpoint, endpointParams);
-        //Client1(msg.sender).callback(id,response);
+        emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
+        Dispatch(msg.sender).respond1(id, "Hello World");
+        // if(onchainSubscriber) {
+        //     bytes32 hash = (endpoint);
+
+        //     if(hash == (spec1)) {
+        //         endpoint1(id, userQuery, endpointParams);
+        //     } 
+        //     else {
+        //        revert("Invalid endpoint");
+        //     }
+        // }
 	}
 
     constructor(address registryAddress) public{
@@ -143,6 +153,7 @@ contract TestClient is Client1, Client2{
 	event Result1(uint256 id, string response1);
     event Result1(uint256 id, bytes32 response1);
     event Result2(uint256 id, string response1, string response2);
+    //emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
 
 	ERC20 token;
 	DispatchInterface dispatch;
@@ -178,7 +189,9 @@ contract TestClient is Client1, Client2{
     }
 
     function testQuery(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external {
+       // emit RecievedQuery(query, specifier, params);
     	dispatch.query(oracleAddr, query, specifier, params, true, true);
+    
     }
 
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
