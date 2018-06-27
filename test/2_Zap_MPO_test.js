@@ -18,11 +18,10 @@ const Registry = artifacts.require("Registry");
 const RegistryStorage = artifacts.require("RegistryStorage");
 const ZapToken = artifacts.require("ZapToken");
 const Cost = artifacts.require("CurrentCost");
-const Oracle = artifacts.require("TestProvider");
 const Subscriber = artifacts.require("TestClient");
 
 // const Subscriber = artifacts.require("Subscriber");
-
+const MPOProvider = artifacts.require("MPOProvider");
 const MPO = artifacts.require("MultiPartyOracle");
 const MPOStorage = artifacts.require("MPOStorage");
 
@@ -69,6 +68,9 @@ contract('Dispatch', function (accounts) {
     const owner = accounts[0];
     const subscriber = accounts[1];
     const provider = accounts[2];
+    const MPO_Provider = accounts[3];
+    const MPO_Provider2 = accounts[4];
+    const MPO_Provider3 = accounts[5];
 
     const tokensForOwner = new BigNumber("5000e18");
     const tokensForSubscriber = new BigNumber("3000e18");
@@ -95,27 +97,6 @@ contract('Dispatch', function (accounts) {
 
     const query = "query";
 
-   /* async function prepareProvider(account = provider, curveParams = piecewiseFunction) {
-        await this.registry.initiateProvider(publicKey, title, specifier, params, { from: account });
-        await this.registry.initiateProviderCurve(specifier, curveParams.constants, curveParams.parts, curveParams.dividers, { from: account });
-    }*/
-
-/*  async function prepareProvider(curveParams = piecewiseFunction, account = provider) {
-        await this.registry.initiateProvider(publicKey, title, specifier, params, {from: account});
-        await this.registry.initiateProviderCurve(specifier, curveParams.constants, curveParams.parts, curveParams.dividers, { from: account });
-}*/ 
-
-/* OLD
-    async function prepareTokens(sub = true) {
-        await this.token.allocate(owner, tokensForOwner, { from: owner });
-        await this.token.allocate(provider, tokensForProvider, { from: owner });
-        if (sub) {
-            await this.token.allocate(this.subscriber.address, tokensForSubscriber, { from: owner });
-            // bond Zap
-            await this.token.approve(this.bondage.address, approveTokens, {from: subscriber});
-        }
-    } */
-
     async function prepareTokens(allocAddress = subscriber) {
         await this.token.allocate(owner, tokensForOwner, { from: owner });
         await this.token.allocate(allocAddress, tokensForSubscriber, { from: owner });
@@ -127,7 +108,7 @@ contract('Dispatch', function (accounts) {
         this.currentTest.registry = await Registry.new(this.currentTest.regStor.address);
         await this.currentTest.regStor.transferOwnership(this.currentTest.registry.address);
         this.currentTest.token = await ZapToken.new();
-        this.currentTest.oracle = await Oracle.new(this.currentTest.registry.address);
+        //this.currentTest.oracle = await Oracle.new(this.currentTest.registry.address);
 
         this.currentTest.cost = await Cost.new(this.currentTest.registry.address);
         this.currentTest.bondStor = await BondageStorage.new();
@@ -139,20 +120,30 @@ contract('Dispatch', function (accounts) {
         await this.currentTest.dispStor.transferOwnership(this.currentTest.dispatch.address);
         this.currentTest.subscriber = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
 
-        
+        // this.currentTest.p1 = await MPOProvider.new("A");
+        // this.currentTest.p2 = await MPOProvider.new("B");
+        // this.currentTest.p3 = await MPOProvider.new("A");
 
     });
 
-    it("DISPATCH_1 - respond1() - Check that we can make a simple query", async function () {
+    it("DISPATCH_1 - respond1() - Check that we can make a simple query to MPO", async function () {
         await prepareTokens.call(this.test, subscriber);
 
+        //this.test.p1 = await MPOProvider.new("A");
+        //this.test.p2 = await MPOProvider.new("B");
+        //this.test.p3 = await MPOProvider.new("A");
+
+        // let p1 = this.test.p1.address;
+        // let p2 = this.test.p2.address;
+        // let p3 = this.test.p3.address;
+
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.MPOStorage.address);
-        await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+        this.test.oracle = await MPO.new(this.test.registry.address, this.test.MPOStorage.address);
+        await this.test.MPOStorage.transferOwnership(this.test.oracle.address);
 
 
         var oracleAddr = this.test.oracle.address;
-        var MPOAddr = this.test.MPO.address;
+        //var MPOAddr = this.test.MPO.address;
         var subAddr = this.test.subscriber.address; 
 
 
@@ -161,9 +152,9 @@ contract('Dispatch', function (accounts) {
         dispatchEvents.watch((err, res) => { });
         const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
         subscriberEvents.watch((err, res) => { }); 
-        const MPOEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
-        MPOEvents.watch((err, res) => { }); 
-        await this.test.MPO.setParams( [oracleAddr], this.test.dispatch.address, 1);
+        const OracleEvents = this.test.oracle.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
+        await this.test.oracle.setParams( [], this.test.dispatch.address, 1);
 
         // holder: subAddr (holder of dots)
         // subscriber: owner of zap
@@ -171,17 +162,17 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(subAddr, oracleAddr, spec1, 100, {from: subscriber});
 
         // SUBSCRIBE SUBSCRIBER TO RECIVE DATA FROM PROVIDER
-        await this.test.subscriber.testQuery(MPOAddr, query, spec1, params);
+        await this.test.subscriber.testQuery(oracleAddr, query, spec1, params);
 
         // wait for callback
 
         // GET ALL EVENTS LOG 
         let logs = await subscriberEvents.get();
         let dlogs = await dispatchEvents.get();
-        let mpologs = await MPOEvents.get();
+        //let mpologs = await MPOEvents.get();
         console.log(logs);
         console.log(dlogs);
-        console.log(mpologs);
+        //console.log(mpologs);
         await expect(isEventReceived(logs, "Result1")).to.be.equal(true);
 
         // subscriber should have emitted one event

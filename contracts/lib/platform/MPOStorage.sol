@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "./lib/ownership/Ownable.sol";
+import "../ownership/Ownable.sol";
 
 contract MPOStorage is Ownable{
 

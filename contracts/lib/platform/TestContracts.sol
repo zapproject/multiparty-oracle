@@ -33,21 +33,7 @@ contract TestProvider is OnChainProvider {
     // middleware function for handling queries
 	function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams);
-        if(onchainSubscriber) {
-            bytes32 hash = keccak256(endpoint);
-
-            if(hash == keccak256(spec1)){
-                endpoint1(id, userQuery, endpointParams);
-            } else if (hash == keccak256(spec2)){               
-                endpoint2(id, userQuery, endpointParams);
-            } else if (hash == keccak256(spec3)){
-                endpoint3(id, userQuery, endpointParams);
-            } else if (hash == keccak256(spec4)){
-                endpoint4(id, userQuery, endpointParams);
-            } else {
-                revert("Invalid endpoint");
-            }
-        }
+        //Client1(msg.sender).callback(id,response);
 	}
 
     constructor(address registryAddress) public{
@@ -130,6 +116,26 @@ contract TestProvider is OnChainProvider {
     }
 
 }
+
+contract MPOProvider is OnChainProvider {
+    event RecievedQuery(string query, bytes32 endpoint, bytes32[] params);
+
+    // specifier doesn't matter in this case
+    bytes32 public spec1 = "Hello?";
+
+    string response;
+
+    constructor(string _response) public {
+        response = _response;    
+    }
+
+    // middleware function for handling queries
+    function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
+        emit RecievedQuery(userQuery, endpoint, endpointParams);
+        Client1(msg.sender).callback(id, response);
+    }
+}
+
 
 /* Test Subscriber Client */
 contract TestClient is Client1, Client2{
