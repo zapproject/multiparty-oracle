@@ -189,7 +189,7 @@ contract TestClient is Client1, Client2{
     }
 
     function testQuery(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external {
-       // emit RecievedQuery(query, specifier, params);
+       //emit RecievedQuery(query, specifier, params);
     	dispatch.query(oracleAddr, query, specifier, params, true, true);
     
     }

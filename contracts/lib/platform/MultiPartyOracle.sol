@@ -33,23 +33,17 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     // middleware function for handling queries
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
-        if(onchainSubscriber) {
-            bytes32 hash = keccak256(endpoint);
+        bytes32 hash = keccak256(endpoint);
+        // if(hash == spec1) {
+            //endpoint1(id, userQuery, endpointParams);
+            stor.setQueryStatus(id,1);
 
-            if(hash == spec1) {
-                //endpoint1(id, userQuery, endpointParams);
-                //stor.setQueryStatus(id,1);
-
-                // query each of the responders
-                for(uint i=0; i<stor.getNumResponders(); i++) {      
-                  dispatch.query(stor.getResponderAddress(i),userQuery,endpoint,endpointParams, true, true);
-                  //OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams, true);
-                }
-            } 
-            else {
-               revert("Invalid endpoint");
+            // query each of the responders
+            for(uint i=0; i<stor.getNumResponders(); i++) {      
+              dispatch.query(stor.getResponderAddress(i),userQuery,endpoint,endpointParams, true, true);
+              //OnChainProvider(stor.getResponderAddress(i)).receive(id, userQuery, endpoint, endpointParams, true);
             }
-        }
+        //}
   }
     constructor(address registryAddress, address dispatchAddress, address mpoStorageAddress) public{
 
@@ -75,7 +69,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         //require(_threshold>0 && _threshold <= _responders.length);    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
-        //stor.setClient(_client);
+        stor.setClient(_client);
     }
 
 
@@ -92,15 +86,15 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
     function callback(uint256 queryId, string response) external {
         //require(stor.getAddressStatus(msg.sender) && !stor.onlyOneResponse(queryId, msg.sender) && stor.getQueryStatus(queryId) == 1);
-        emit Result1(queryId, response);
-        // stor.addResponse(queryId, response, msg.sender);
-        // emit ReceivedResponse(queryId, msg.sender, response);
+        //emit Result1(queryId, response);
+        stor.addResponse(queryId, response, msg.sender);
+        emit ReceivedResponse(queryId, msg.sender, response);
     
-        // if(stor.getTally(queryId, response) >= stor.getThreshold()) {
-        //     stor.setQueryStatus(queryId, 2);
+         if(stor.getTally(queryId, response) >= stor.getThreshold()) {
+             stor.setQueryStatus(queryId, 2);
         //     //endpoint1(queryId, )
-        //     Dispatch(msg.sender).respond1(queryId, response);
-        // }
+        //     dispatch.respond1(queryId, response);
+         }
   }
 
     function testQuery(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external {
