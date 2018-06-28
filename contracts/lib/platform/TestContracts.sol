@@ -51,7 +51,7 @@ contract TestProvider is OnChainProvider {
         registry = RegistryInterface(registryAddress);
 
         // initialize in registry
-        bytes32 title = "TestContract";
+        bytes32 title = "Provider1";
 
         bytes32[] memory params = new bytes32[](2);
         params[0] = "p1";
@@ -61,89 +61,83 @@ contract TestProvider is OnChainProvider {
 
         registry.initiateProviderCurve(spec1, constants, parts, dividers);
         registry.initiateProviderCurve(spec2, constants, parts, dividers);
-        registry.initiateProviderCurve(spec3, constants, parts, dividers);
-        registry.initiateProviderCurve(spec4, constants, parts, dividers);
     }
 
 
     // return Hello World to query-maker
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+        //if endpoint param == 1
         Dispatch(msg.sender).respond1(id, "Hello World");
     }
 
     // return the hash of the query
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         // endpointParams
-        string memory reversed = reverseString(userQuery);
-        Dispatch(msg.sender).respond1(id, reversed);
-    }
-
-     // returns the sum of all values in endpointParams
-    function endpoint3(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        uint sum = 0;
-        for(uint i = 0; i<endpointParams.length; i++){
-            uint value = uint(endpointParams[i]);
-            sum += value;
-        }
-
-        bytes32[] memory res = new bytes32[](1);
-        res[0] = bytes32(sum);
-
-        Dispatch(msg.sender).respondBytes32Array(id, res);
-    }
-
-    // returns the sum of all values in endpointParams
-    function endpoint4(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        Dispatch(msg.sender).respond2(id, "Hello", "World");
     }
 
     // TODO: TEST OUT MORE RETURN VALUES (1,2,3 or 4)!
 
-
-
-    function reverseString(string _base) internal pure returns (string){
-        bytes memory _baseBytes = bytes(_base);
-        string memory _tempValue = new string(_baseBytes.length);
-        bytes memory _newValue = bytes(_tempValue);
-
-        for(uint i=0;i<_baseBytes.length;i++){
-            _newValue[ _baseBytes.length - i - 1] = _baseBytes[i];
-        }
-
-        return string(_newValue);
-    }
-
-
-    function bytes32ToString (bytes32 data) internal pure returns (string) {
-        bytes memory bytesString = new bytes(32);
-        for (uint j=0; j<32; j++) {
-            byte char = byte(bytes32(uint(data) * 2 ** (8 * j)));
-            if (char != 0) {
-                bytesString[j] = char;
-            }
-        }
-        return string(bytesString);
-    }
-
 }
 
-contract MPOProvider is OnChainProvider {
-    event RecievedQuery(string query, bytes32 endpoint, bytes32[] params);
+contract TestProvider2 is OnChainProvider {
+    event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
 
-    // specifier doesn't matter in this case
+    event TEST(uint res, bytes32 b, string s);
+
     bytes32 public spec1 = "Hello?";
+    bytes32 public spec2 = "Reverse";
+    bytes32 public spec3 = "Add";
+    bytes32 public spec4 = "Double";
 
-    string response;
+    /* Endpoints to Functions:
+    spec1: Hello? -> returns "Hello World"
+    spec2: Reverse -> returns the query string in reverse
+    spec3: Add -> Adds up the values in endpointParams 
+    */
 
-    constructor(string _response) public {
-        response = _response;    
-    }
+    // curve 2x^2
+    int[] constants = [3, 3, 0];
+    uint[] parts = [0, 1000000000];
+    uint[] dividers = [1]; 
+
+    RegistryInterface registry;
 
     // middleware function for handling queries
-    function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams) external {
-        emit RecievedQuery(userQuery, endpoint, endpointParams);
-        Client1(msg.sender).callback(id, response);
+    function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
+        emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
+        Dispatch(msg.sender).respond1(id, "Goodbye World");
     }
+
+    constructor(address registryAddress) public{
+
+        registry = RegistryInterface(registryAddress);
+
+        // initialize in registry
+        bytes32 title = "Provder2";
+
+        bytes32[] memory params = new bytes32[](2);
+        params[0] = "p1";
+        params[1] = "p2";
+
+        registry.initiateProvider(12345, title, spec1, params);
+
+        registry.initiateProviderCurve(spec1, constants, parts, dividers);
+        registry.initiateProviderCurve(spec2, constants, parts, dividers);
+    }
+
+
+    // return Hello World to query-maker
+    function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+        //if endpoint param == 1
+        Dispatch(msg.sender).respond1(id, "Hello World");
+    }
+
+    // return the hash of the query
+    function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+        // endpointParams
+
+    }
+
 }
 
 
