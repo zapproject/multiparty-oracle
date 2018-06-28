@@ -400,11 +400,18 @@ contract('Dispatch', function (accounts) {
 
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         
-        var result = sublogs[0].args["response1"];
-        await expect(result).to.be.equal("Hello World");
+
+        var results = [];
+        results.push(sublogs[0].args["response1"]);
+        results.push(sublogs[1].args["response1"]);
+
+        console.log(results);
+        await expect(results).to.include( 'yreuq','Hello World');
+
+        // await expect(result).to.be.equal("Hello World");
         
-        var result2 = sublogs[1].args["response1"];
-        await expect(result2).to.be.equal("yreuq");
+        // var result2 = 
+        // await expect(result2).to.be.equal("yreuq");
 
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
