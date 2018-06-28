@@ -25,7 +25,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     address dispatchAddress;
     address public storageAddress;
 
-    bytes32 public spec1 = "endpoint1";
+    bytes32 public spec1 = "Hello?";
     bytes32 public spec2 = "Reverse";
 
     // curve 2x^2
