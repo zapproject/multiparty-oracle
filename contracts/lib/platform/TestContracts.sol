@@ -12,7 +12,7 @@ contract TestProvider is OnChainProvider {
 
     event TEST(uint res, bytes32 b, string s);
 
-    bytes32 public spec1 = "Hello?";
+    bytes32 public spec1 = "endpoint1";
     bytes32 public spec2 = "Reverse";
     bytes32 public spec3 = "Add";
     bytes32 public spec4 = "Double";
@@ -84,7 +84,7 @@ contract TestProvider2 is OnChainProvider {
 
     event TEST(uint res, bytes32 b, string s);
 
-    bytes32 public spec1 = "Hello?";
+    bytes32 public spec1 = "endpoint1";
     bytes32 public spec2 = "Reverse";
     bytes32 public spec3 = "Add";
     bytes32 public spec4 = "Double";

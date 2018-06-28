@@ -81,10 +81,7 @@ contract('Dispatch', function (accounts) {
 
     const params = ["param1", "param2"];
 
-    const spec1 = "Hello?";
-    const spec2 = "Reverse";
-    const spec3 = "Add";
-    const spec4 = "Double";
+    const spec1 = "endpoint1";
 
 
     const publicKey = 10001;
