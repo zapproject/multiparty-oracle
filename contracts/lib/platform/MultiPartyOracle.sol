@@ -21,10 +21,12 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     RegistryInterface registry;
     MPOStorage stor;
     
+    //move dispatch address to storage
     address dispatchAddress;
     address public storageAddress;
 
     bytes32 public spec1 = "endpoint1";
+    bytes32 public spec2 = "Reverse";
 
     // curve 2x^2
     int[] constants = [2, 2, 0];
@@ -38,6 +40,8 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         stor = MPOStorage(mpoStorageAddress);
         dispatchAddress = _dispatchAddress;
 
+        
+
         // initialize in registry
         bytes32 title = "MultiPartyOracle";
 
@@ -46,6 +50,8 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
         registry.initiateProvider(12345, title, spec1, params);
         registry.initiateProviderCurve(spec1, constants, parts, dividers);
+        registry.initiateProviderCurve(spec2, constants, parts, dividers);
+
     }
 
     // middleware function for handling queries
@@ -58,6 +64,10 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         if(hash == keccak256(spec1)) {
             stor.setQueryStatus(id,1);
             endpoint1(id, userQuery, endpointParams);
+        }
+        else if(hash == keccak256(spec2)) {
+            stor.setQueryStatus(id,1);
+            endpoint2(id, userQuery, endpointParams);
         }
     }
 
@@ -72,6 +82,12 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         for(uint i=0; i<stor.getNumResponders(); i++) {      
           dispatch.query(stor.getResponderAddress(i), userQuery, spec1, endpointParams, true, true);
+        }
+    }
+
+    function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+        for(uint i=0; i<stor.getNumResponders(); i++) {      
+          dispatch.query(stor.getResponderAddress(i), userQuery, spec2, endpointParams, true, true);
         }
     }
 

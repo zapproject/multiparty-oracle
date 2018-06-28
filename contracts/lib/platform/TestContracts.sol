@@ -14,8 +14,6 @@ contract TestProvider is OnChainProvider {
 
     bytes32 public spec1 = "endpoint1";
     bytes32 public spec2 = "Reverse";
-    bytes32 public spec3 = "Add";
-    bytes32 public spec4 = "Double";
 
     /* Endpoints to Functions:
     spec1: Hello? -> returns "Hello World"
@@ -33,17 +31,14 @@ contract TestProvider is OnChainProvider {
     // middleware function for handling queries
 	function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
-        Dispatch(msg.sender).respond1(id, "Hello World");
-        // if(onchainSubscriber) {
-        //     bytes32 hash = (endpoint);
-
-        //     if(hash == (spec1)) {
-        //         endpoint1(id, userQuery, endpointParams);
-        //     } 
-        //     else {
-        //        revert("Invalid endpoint");
-        //     }
-        // }
+        // Dispatch(msg.sender).respond1(id, "Hello World");
+        
+        bytes32 hash = keccak256(endpoint);
+        if(hash == keccak256(spec1)) {
+            endpoint1(id, userQuery, endpointParams);
+        } else if(hash == keccak256(spec2)) {
+            endpoint2(id, userQuery, endpointParams);
+        }
 	}
 
     constructor(address registryAddress) public{
@@ -72,7 +67,7 @@ contract TestProvider is OnChainProvider {
 
     // return the hash of the query
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        // endpointParams
+        Dispatch(msg.sender).respond1(id, "nonreverse");
     }
 
     // TODO: TEST OUT MORE RETURN VALUES (1,2,3 or 4)!
@@ -86,8 +81,6 @@ contract TestProvider2 is OnChainProvider {
 
     bytes32 public spec1 = "endpoint1";
     bytes32 public spec2 = "Reverse";
-    bytes32 public spec3 = "Add";
-    bytes32 public spec4 = "Double";
 
     /* Endpoints to Functions:
     spec1: Hello? -> returns "Hello World"
@@ -105,7 +98,12 @@ contract TestProvider2 is OnChainProvider {
     // middleware function for handling queries
     function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
-        Dispatch(msg.sender).respond1(id, "Goodbye World");
+        bytes32 hash = keccak256(endpoint);
+        if(hash == keccak256(spec1)) {
+            endpoint1(id, userQuery, endpointParams);
+        } else if(hash == keccak256(spec2)) {
+            endpoint2(id, userQuery, endpointParams);
+        }
     }
 
     constructor(address registryAddress) public{
@@ -113,7 +111,7 @@ contract TestProvider2 is OnChainProvider {
         registry = RegistryInterface(registryAddress);
 
         // initialize in registry
-        bytes32 title = "Provder2";
+        bytes32 title = "Provider2";
 
         bytes32[] memory params = new bytes32[](2);
         params[0] = "p1";
@@ -128,14 +126,12 @@ contract TestProvider2 is OnChainProvider {
 
     // return Hello World to query-maker
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        //if endpoint param == 1
-        Dispatch(msg.sender).respond1(id, "Hello World");
+        Dispatch(msg.sender).respond1(id, "Goodbye World");
     }
 
     // return the hash of the query
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        // endpointParams
-
+        Dispatch(msg.sender).respond1(id, "reverse");
     }
 
 }
