@@ -27,12 +27,17 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
     DispatchInterface dispatch;
     RegistryInterface registry;
+    address dispatchAddress;
     MPOStorage stor;
     address public storageAddress;
     
     // middleware function for handling queries
   function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
+        //emit RecievedQuery(userQuery, endpoint, endpointParams, dispatchAddress);
+        require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
+
+        stor.setClientQueryId(id);
         bytes32 hash = keccak256(endpoint);
         // if(hash == spec1) {
             //endpoint1(id, userQuery, endpointParams);
@@ -45,12 +50,13 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
             }
         //}
   }
-    constructor(address registryAddress, address dispatchAddress, address mpoStorageAddress) public{
+    constructor(address registryAddress, address _dispatchAddress, address mpoStorageAddress) public{
 
         registry = RegistryInterface(registryAddress);
-        dispatch = DispatchInterface(dispatchAddress);
+        dispatch = DispatchInterface(_dispatchAddress);
         stor = MPOStorage(mpoStorageAddress);
-
+        dispatchAddress = _dispatchAddress;
+        
         // initialize in registry
         bytes32 title = "MultiPartyOracle";
 
@@ -66,7 +72,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     }
 
     function setParams(address[] _responders, address _client, uint256 _threshold) public {
-        //require(_threshold>0 && _threshold <= _responders.length);    
+        require(_threshold>0 && _threshold <= _responders.length);    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
         stor.setClient(_client);
@@ -85,15 +91,15 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     }
 
     function callback(uint256 queryId, string response) external {
-        //require(stor.getAddressStatus(msg.sender) && !stor.onlyOneResponse(queryId, msg.sender) && stor.getQueryStatus(queryId) == 1);
+        require(msg.sender == dispatchAddress && stor.getQueryStatus(stor.getClientQueryId()) == 1);
         //emit Result1(queryId, response);
         stor.addResponse(queryId, response, msg.sender);
         emit ReceivedResponse(queryId, msg.sender, response);
     
          if(stor.getTally(queryId, response) >= stor.getThreshold()) {
-             stor.setQueryStatus(queryId, 2);
-        //     //endpoint1(queryId, )
-        //     dispatch.respond1(queryId, response);
+            stor.setQueryStatus(stor.getClientQueryId(), 2);
+            emit Result1(queryId, response);
+            dispatch.respond1(stor.getClientQueryId(), response);
          }
   }
 

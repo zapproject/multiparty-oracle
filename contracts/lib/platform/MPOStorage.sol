@@ -17,7 +17,8 @@ contract MPOStorage is Ownable{
 	address[] responders;
 
 	// implements Client1
-	address client; 
+	address client;
+	uint256 clientQueryId; 
 
 
 	//Set Methods/Mutators
@@ -27,6 +28,10 @@ contract MPOStorage is Ownable{
 
 	function setClient(address _client) external onlyOwner {
 		client = _client;
+	}
+
+	function setClientQueryId(uint256 _clientQueryId) external onlyOwner {
+		clientQueryId = _clientQueryId;
 	}
  
 	function setResponders(address[] parties) external onlyOwner {
@@ -63,6 +68,12 @@ contract MPOStorage is Ownable{
 	function getClient() external view returns(address){
 		return client;
 	}
+
+
+	function getClientQueryId() external view returns(uint256){
+		return clientQueryId;
+	}
+
 	function getQueryStatus(uint256 queryId) external view returns(uint256){
 		return queryStatus[queryId];
 	}

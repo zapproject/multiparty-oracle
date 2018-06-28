@@ -252,7 +252,7 @@ contract('Dispatch', function (accounts) {
     //     subscriberEvents.stopWatching();
     // });
 
-    it("DISPATCH_2 - Check that the following pipeline works: Client -> Dispatch -> MPO -> Dispatch -> OnChainProvider -> Dispatch -> MPO -> Dispatch -> Client", async function () {
+    it("DISPATCH_3 - Check that the following pipeline works: Client -> Dispatch -> MPO -> Dispatch -> OnChainProvider -> Dispatch -> MPO -> Dispatch -> Client", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -287,7 +287,7 @@ contract('Dispatch', function (accounts) {
         //eventually the MPO will have to bond to multiple providers through a FOR loop
         await this.test.bondage.delegateBond(MPOAddr, p1Addr, spec1, 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr], this.test.dispatch.address, 1);
+        this.test.MPO.setParams([p1Addr], this.test.subscriber.address, 1);
 
 
         // let addr = await this.test.MPOStorage.getClient();
@@ -296,14 +296,16 @@ contract('Dispatch', function (accounts) {
         //client queries MPO through dispatch
         await this.test.subscriber.testQuery(MPOAddr, this.test.dispatch.address, spec1, params)
 
-
-
         let sublogs = await subscriberEvents.get();
         let mpologs = await subscriberEvents.get();
         let dislogs = await subscriberEvents.get();
         //console.log(sublogs);
+        // console.log(dispatchEvents);
+        // console.log(subscriberEvents);
         console.log(mpologs);
+
         await expect(isEventReceived(mpologs, "Result1")).to.be.equal(true);
+        console.log("Something...? " + mpologs.args.id)
 
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
