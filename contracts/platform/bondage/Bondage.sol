@@ -247,7 +247,7 @@ contract Bondage is Destructible, BondageInterface {
         }
 
         // User must have approved contract to transfer working ZAP
-        require(token.transferFrom(msg.sender, this, numZap));
+        require(token.transferFrom(msg.sender, this, numZap), "USER NOT APPORVED");
 
         stor.updateBondValue(holderAddress, oracleAddress, endpoint, numDots, "add");        
         stor.updateTotalIssued(oracleAddress, endpoint, numDots, "add");

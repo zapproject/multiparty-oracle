@@ -59,10 +59,10 @@ contract Arbiter is Destructible, ArbiterInterface {
         public 
     {   
         // Must be atleast one block
-        require(blocks > 0);
+        require(blocks > 0, "ARBITER ERROR: BLOCKS");
 
         // Can't reinitiate a currently active contract
-        require(stor.getDots(providerAddress, msg.sender, endpoint) == 0);
+        require(stor.getDots(providerAddress, msg.sender, endpoint) == 0, "ARBITER ERROR");
 
         // Escrow the necessary amount of dots
         bondage.escrowDots(msg.sender, providerAddress, endpoint, blocks);
@@ -144,7 +144,7 @@ contract Arbiter is Destructible, ArbiterInterface {
         uint256 dots = stor.getDots(providerAddress, subscriberAddress, endpoint);
         uint256 preblockend = stor.getPreBlockEnd(providerAddress, subscriberAddress, endpoint);
         // Make sure the subscriber has a subscription
-        require(dots > 0);
+        require(dots > 0, "ARBITER ERROR: DOTS");
 
         if (block.number < preblockend) {
             // Subscription ended early
