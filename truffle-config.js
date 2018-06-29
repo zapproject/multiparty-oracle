@@ -22,6 +22,7 @@ module.exports = {
             network_id: "*",
             // gas: "6721975",
             // gasPrice: "10000000"
+
         },
         "ganache-gui": {
             host: "localhost",
