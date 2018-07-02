@@ -59,13 +59,13 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
         require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
         stor.setQueryStatus(id,1);
-    // stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(0), 
-    //                                                     userQuery, 
-    //                                                     endpoint, 
-    //                                                     endpointParams, 
-    //                                                     true, 
-    //                                                     true));
-        for(uint i=2; i>0; i--) {      
+    stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(0), 
+                                                        userQuery, 
+                                                        endpoint, 
+                                                        endpointParams, 
+                                                        true, 
+                                                        true));
+        for(uint i=0; i<stor.getNumResponders(); i++) {      
           stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(i), 
                                                     userQuery, 
                                                     endpoint, 
