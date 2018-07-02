@@ -58,48 +58,62 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
         require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
-        
-        stor.setClientQueryId(id);
-        bytes32 hash = keccak256(endpoint);
-        if(hash == keccak256(spec1)) {
-            stor.setQueryStatus(id,1);
-            endpoint1(id, userQuery, endpointParams);
+        stor.setQueryStatus(id,1);
+    stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(0), 
+                                                        userQuery, 
+                                                        endpoint, 
+                                                        endpointParams, 
+                                                        true, 
+                                                        true));
+        for(uint i=0; i<stor.getNumResponders(); i++) {      
+          stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(i), 
+                                                    userQuery, 
+                                                    endpoint, 
+                                                    endpointParams, 
+                                                    true, 
+                                                    true));
         }
-        else if(hash == keccak256(spec2)) {
-            stor.setQueryStatus(id,1);
-            endpoint2(id, userQuery, endpointParams);
-        }
+        // bytes32 hash = keccak256(endpoint);
+        // if(hash == keccak256(spec1)) {
+        //     stor.setQueryStatus(id,1);
+        //     endpoint1(id, userQuery, endpointParams);
+        // }
+        // else if(hash == keccak256(spec2)) {
+        //     stor.setQueryStatus(id,1);
+        //     endpoint2(id, userQuery, endpointParams);
+        // }
     }
 
     function setParams(address[] _responders, address _client, uint256 _threshold) public {
         require(_threshold>0 && _threshold <= _responders.length);    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
-        stor.setClient(_client);
+        //stor.setClient(_client);
     }
 
     // queries mulitple onchain providers
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         for(uint i=0; i<stor.getNumResponders(); i++) {      
-          dispatch.query(stor.getResponderAddress(i), userQuery, spec1, endpointParams, true, true);
+          stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(i), userQuery, spec1, endpointParams, true, true));
         }
     }
 
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         for(uint i=0; i<stor.getNumResponders(); i++) {      
-          dispatch.query(stor.getResponderAddress(i), userQuery, spec2, endpointParams, true, true);
+          stor.setClientQueryId(id, dispatch.query(stor.getResponderAddress(i), userQuery, spec2, endpointParams, true, true));
         }
     }
 
-    function callback(uint256 queryId, string response) external {
+    function callback(uint256 MPOId, string response) external {
         require(msg.sender == dispatchAddress);
-        stor.addResponse(queryId, response, msg.sender);
-        emit ReceivedResponse(queryId, msg.sender, response);
+        //stor.getClientQueryId(MPOId);5
+        stor.addResponse(stor.getClientQueryId(MPOId), response);
+        emit ReceivedResponse(stor.getClientQueryId(MPOId), msg.sender, response);
     
-        if(stor.getTally(queryId, response) >= stor.getThreshold() && stor.getQueryStatus(stor.getClientQueryId()) == 1) {
-            stor.setQueryStatus(stor.getClientQueryId(), 2);
-            emit Result1(queryId, response);
-            dispatch.respond1(stor.getClientQueryId(), response);
+        if(stor.getTally(stor.getClientQueryId(MPOId), response) >= stor.getThreshold() && stor.getQueryStatus(stor.getClientQueryId(MPOId)) == 1) {
+            stor.setQueryStatus(stor.getClientQueryId(MPOId), 2);
+            emit Result1(stor.getClientQueryId(MPOId), response);
+            dispatch.respond1(stor.getClientQueryId(MPOId), response);
         }
     }
 
