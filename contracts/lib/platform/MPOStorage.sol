@@ -6,11 +6,12 @@ contract MPOStorage is Ownable{
 
 
 
-	mapping(uint256 => bytes32[]) queryResponses; // List of query responses. functionally unnecessary, used for testing purposes
-	mapping(address => bool) approvedAddress; // check if msg.sender is in global approved list of responders
+	//mapping(uint256 => bytes32[]) queryResponses; // List of query responses. functionally unnecessary, used for testing purposes
+	//mapping(address => bool) approvedAddress; // check if msg.sender is in global approved list of responders
 	mapping(uint256 => uint256) queryStatus;// Threshold reached, do not accept any more responses
+	mapping(uint256 => uint256) clientQueryId;// MPO Query ID to Client QUery Id
 	mapping(uint256 => mapping(string => uint256) ) responseTally; // Tally of each response.
-	mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
+	//mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
 
 	
 	uint256 threshold;
@@ -18,7 +19,7 @@ contract MPOStorage is Ownable{
 
 	// implements Client1
 	address client;
-	uint256 clientQueryId; 
+	//uint256 clientQueryId; 
 
 
 	//Set Methods/Mutators
@@ -30,8 +31,8 @@ contract MPOStorage is Ownable{
 		client = _client;
 	}
 
-	function setClientQueryId(uint256 _clientQueryId) external onlyOwner {
-		clientQueryId = _clientQueryId;
+	function setClientQueryId(uint256 _clientQueryId, uint256 MPOId) external onlyOwner {
+		clientQueryId[MPOId] = _clientQueryId;
 	}
  
 	function setResponders(address[] parties) external onlyOwner {
@@ -45,21 +46,21 @@ contract MPOStorage is Ownable{
 		queryStatus[queryId]=status;
 	}
 
-	function addResponse(uint256 queryId, string response, address party) external onlyOwner {
+	function addResponse(uint256 queryId, string response) external onlyOwner {
 		responseTally[queryId][response]++;
-		oneAddressResponse[queryId][party]=true;
+		//oneAddressResponse[queryId][party]=true;
 	}
 
 	//Get Methods/Accessors
-	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
-		return oneAddressResponse[queryId][party];
-	}
+	// function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
+	// 	return oneAddressResponse[queryId][party];
+	// }
 	function getThreshold() external view returns(uint) { 
 		return threshold;
 	}
-	function getAddressStatus(address party) external view returns(bool){
-		return approvedAddress[party];
-	}
+	// function getAddressStatus(address party) external view returns(bool){
+	// 	return approvedAddress[party];
+	// }
 
 	function getTally(uint256 queryId, string response)external view returns(uint256){
 		return responseTally[queryId][response];
@@ -70,8 +71,8 @@ contract MPOStorage is Ownable{
 	}
 
 
-	function getClientQueryId() external view returns(uint256){
-		return clientQueryId;
+	function getClientQueryId(uint256 MPOId) external view returns(uint256){
+		return clientQueryId[MPOId];
 	}
 
 	function getQueryStatus(uint256 queryId) external view returns(uint256){
