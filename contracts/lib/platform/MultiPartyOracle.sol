@@ -60,15 +60,20 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
         
         stor.setClientQueryId(id);
-        bytes32 hash = keccak256(endpoint);
-        if(hash == keccak256(spec1)) {
-            stor.setQueryStatus(id,1);
-            endpoint1(id, userQuery, endpointParams);
+        // For Offchain providers
+        stor.setQueryStatus(id,1);
+        for(uint i=0; i<stor.getNumResponders(); i++) {      
+          dispatch.query(stor.getResponderAddress(i), userQuery, endpoint, endpointParams, false, true);
         }
-        else if(hash == keccak256(spec2)) {
-            stor.setQueryStatus(id,1);
-            endpoint2(id, userQuery, endpointParams);
-        }
+        // bytes32 hash = keccak256(endpoint);
+        // if(hash == keccak256(spec1)) {
+        //     stor.setQueryStatus(id,1);
+        //     endpoint1(id, userQuery, endpointParams);
+        // }
+        // else if(hash == keccak256(spec2)) {
+        //     stor.setQueryStatus(id,1);
+        //     endpoint2(id, userQuery, endpointParams);
+        // }
     }
 
     function setParams(address[] _responders, address _client, uint256 _threshold) public {
