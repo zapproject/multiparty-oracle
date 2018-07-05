@@ -1,5 +1,8 @@
 // import EVMRevert from './helpers/EVMRevert';
 
+
+
+//const web3 = require("web3");
 const BigNumber = web3.BigNumber;
 
 const expect = require('chai')
@@ -9,6 +12,7 @@ const expect = require('chai')
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
+const OffchainProvider = require("../components/Provider");
 
 const Dispatch = artifacts.require("Dispatch");
 const DispatchStorage = artifacts.require("DispatchStorage");
@@ -21,6 +25,7 @@ const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
 const Provider2 = artifacts.require("TestProvider2");
+
 // const Subscriber = artifacts.require("Subscriber");
 
 const MPO = artifacts.require("MultiPartyOracle");
@@ -68,11 +73,11 @@ function getParamsFromIncomingEvent(logs) {
 contract('Dispatch', function (accounts) {
     const owner = accounts[0];
     const subscriber = accounts[1];
-    const provider = accounts[2];
-    const MPO_Provider = accounts[3];
-    const MPO_Provider2 = accounts[4];
-    const MPO_Provider3 = accounts[5];
-    const subscriber2 =accounts[6];
+    const subscriber2 =accounts[2];
+    const provider = accounts[3];
+    const offchainOwner = accounts[4];
+    const offchainOwner2 = accounts[5];
+    const offchainOwner3 = accounts[6];
 
     const tokensForOwner = new BigNumber("5000e18");
     const tokensForSubscriber = new BigNumber("3000e18");
@@ -131,6 +136,23 @@ contract('Dispatch', function (accounts) {
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
 
+        // const offchain = new OffchainProvider({owner:offchainOwner});
+        // offchain.create({pubKey: 12345, title: , endpoint: spec1, params: params});
+            
+            await this.test.registry.initiateProvider(
+                23456,
+                "OffchainProvider",
+                spec1,
+                params,
+                {from: offchainOwner});
+
+            await this.test.registry.initiateProviderCurve(
+                spec1,
+                [2,2,2],
+                [0,1000],
+                [1],
+                {from: offchainOwner});
+
         // this.test.p1 = await Provider.new(this.test.registry.address);
         // this.test.p2 = await Provider2.new(this.test.registry.address);
         // this.test.p3 = await Provider.new(this.test.registry.address);
@@ -142,11 +164,11 @@ contract('Dispatch', function (accounts) {
 
         var MPOAddr = this.test.MPO.address;
         var subAddr = this.test.subscriber.address; 
-        var p1Addr = this.test.p1.address;
-        var p2Addr = this.test.p2.address;
-        var p3Addr = this.test.p3.address;
+        // var p1Addr = this.test.p1.address;
+        // var p2Addr = this.test.p2.address;
+        // var p3Addr = this.test.p3.address;
 
-        // watch events
+        // // watch events
         const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
         dispatchEvents.watch((err, res) => { });
         
@@ -163,29 +185,32 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(subAddr, MPOAddr, spec1, 100, {from: subscriber});
         
         //eventually the MPO will have to bond to multiple providers through a FOR loop
-        await this.test.bondage.delegateBond(MPOAddr, p1Addr, spec1, 100, {from: provider});
-        await this.test.bondage.delegateBond(MPOAddr, p2Addr, spec1, 100, {from: provider});
-        await this.test.bondage.delegateBond(MPOAddr, p3Addr, spec1, 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, offchainOwner, spec1, 100, {from: provider});
+        // await this.test.bondage.delegateBond(MPOAddr, p2Addr, spec1, 100, {from: provider});
+        // await this.test.bondage.delegateBond(MPOAddr, p3Addr, spec1, 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([offchainOwner], this.test.subscriber.address, 1);
 
-        //client queries MPO through dispatch
+        // //client queries MPO through dispatch
         await this.test.subscriber.testQuery(MPOAddr, query, spec1, params)
 
-        let sublogs = await subscriberEvents.get();
+        
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
-
-        console.log(sublogs);
-
+        await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
+        console.log(dislogs);
+        await this.test.dispatch.respond1(dislogs[0].args["id"], "Hello World", {from: offchainOwner});
+        // console.log(sublogs);
+        let sublogs = await subscriberEvents.get();
+        console.log(sublogs)
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var result = sublogs[0].args["response1"]
         await expect(result).to.be.equal("Hello World")
 
 
-        OracleEvents.stopWatching();
-        dispatchEvents.stopWatching();
-        subscriberEvents.stopWatching();
+        // OracleEvents.stopWatching();
+        // dispatchEvents.stopWatching();
+        // subscriberEvents.stopWatching();
     });
 
 

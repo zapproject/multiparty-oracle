@@ -2,6 +2,14 @@ const assert = require("assert");
 const contracts = require("./ContractsData");
 const web3 = contracts.web3;
 
+const ZapArbiterArtifact = artifacts.require("Arbiter");
+const ZapBondageArtifact = artifacts.require("Bondage");
+const ZapBondageStorageArtifact = artifacts.require("BondageStorage");
+const ZapDispatchArtifact = artifacts.require("Dispatch");
+const ZapRegistryArtifact = artifacts.require("Registry");
+const ZapTokenArtifact = artifacts.require("ZapToken");
+
+
 class Provider{
     constructor({owner}){
         assert(owner,"owner address is required");
@@ -16,6 +24,7 @@ class Provider{
                     params[i] = web3.utils.utf8ToHex(params[i])
                 }
             }
+            console.log("DID WE MAKE IT????????????");
             let provider = await contracts.zapRegistry.methods.initiateProvider(
                 new web3.utils.BN(pubkey),
                 web3.utils.utf8ToHex(title),
