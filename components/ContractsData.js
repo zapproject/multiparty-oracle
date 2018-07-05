@@ -3,15 +3,25 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 
+// const ZapArbiterArtifact = artifacts.require("Arbiter")
+
 const netConfig = require("../config/network");
 
 const w3 = new web3(netConfig.host);
-ZapArbiterArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts/Arbiter.json')));
-ZapBondageArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts//Bondage.json')));
-ZapBondageStorageArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts/BondageStorage.json')));
-ZapDispatchArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts/Dispatch.json')));
-ZapRegistryArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts/Registry.json')));
-ZapTokenArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../contracts/ZapToken.json')));
+
+const ZapArbiterArtifact = artifacts.require("Arbiter");
+const ZapBondageArtifact = artifacts.require("Bondage");
+const ZapBondageStorageArtifact = artifacts.require("BondageStorage");
+const ZapDispatchArtifact = artifacts.require("Dispatch");
+const ZapRegistryArtifact = artifacts.require("Registry");
+const ZapTokenArtifact = artifacts.require("ZapToken");
+
+// ZapArbiterArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts/Arbiter.json')));
+// ZapBondageArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts//Bondage.json')));
+// ZapBondageStorageArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts/BondageStorage.json')));
+// ZapDispatchArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts/Dispatch.json')));
+// ZapRegistryArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts/Registry.json')));
+// ZapTokenArtifact = JSON.parse(fs.readFileSync(path.join(__dirname,'../build/contracts/ZapToken.json')));
 module.exports = {
     BASE: 1000000000000000000,
     web3 : w3,

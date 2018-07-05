@@ -27,6 +27,7 @@
     "secp256k1": "^3.5.0",
     "truffle": "^4.1.12",
     "truffle-hdwallet-provider-privkey": "^0.2.0",
-    "uuid-parse": "^1.0.0"
+    "uuid-parse": "^1.0.0",
+    "web3": "^1.0.0-beta.34"
   }
 }
