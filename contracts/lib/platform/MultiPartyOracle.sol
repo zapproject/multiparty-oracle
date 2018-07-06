@@ -63,7 +63,8 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         // For Offchain providers
         stor.setQueryStatus(id,1);
         for(uint i=0; i<stor.getNumResponders(); i++) {      
-          dispatch.query(stor.getResponderAddress(i), userQuery, endpoint, endpointParams, false, true);
+          stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, endpoint, endpointParams, false, true),
+                                id);
         }
         // bytes32 hash = keccak256(endpoint);
         // if(hash == keccak256(spec1)) {
@@ -99,12 +100,12 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     function callback(uint256 queryId, string response) external {
         require(msg.sender == dispatchAddress);
         stor.addResponse(queryId, response, msg.sender);
-        emit ReceivedResponse(queryId, msg.sender, response);
+        emit ReceivedResponse(stor.getClientQueryId(queryId), msg.sender, response);
     
-        if(stor.getTally(queryId, response) >= stor.getThreshold() && stor.getQueryStatus(stor.getClientQueryId()) == 1) {
-            stor.setQueryStatus(stor.getClientQueryId(), 2);
+        if(stor.getTally(queryId, response) >= stor.getThreshold() && stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1) {
+            stor.setQueryStatus(stor.getClientQueryId(queryId), 2);
             emit Result1(queryId, response);
-            dispatch.respond1(stor.getClientQueryId(), response);
+            dispatch.respond1(stor.getClientQueryId(queryId), response);
         }
     }
 

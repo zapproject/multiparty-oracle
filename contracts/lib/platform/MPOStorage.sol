@@ -6,18 +6,19 @@ contract MPOStorage is Ownable{
 
 
 
-	mapping(uint256 => bytes32[]) queryResponses; // List of query responses. functionally unnecessary, used for testing purposes
-	mapping(address => bool) approvedAddress; // check if msg.sender is in global approved list of responders
+	// mapping(uint256 => bytes32[]) queryResponses; // List of query responses. functionally unnecessary, used for testing purposes
+	// mapping(address => bool) approvedAddress; // check if msg.sender is in global approved list of responders
 	mapping(uint256 => uint256) queryStatus;// Threshold reached, do not accept any more responses
 	mapping(uint256 => mapping(string => uint256) ) responseTally; // Tally of each response.
-	mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
-
+	// mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
+	mapping(unit256 => uint256) mpoToClientId;
 	
 	uint256 threshold;
 	address[] responders;
 
 	// implements Client1
-	address client;
+	// address client;
+
 	uint256 clientQueryId; 
 
 
@@ -32,6 +33,9 @@ contract MPOStorage is Ownable{
 
 	function setClientQueryId(uint256 _clientQueryId) external onlyOwner {
 		clientQueryId = _clientQueryId;
+	}
+	function setClientQueryId(uint256 mpoId, uint256 _clientQueryId) external onlyOwner {
+		mpoToClientId[mpoID] = _clientQueryId;
 	}
  
 	function setResponders(address[] parties) external onlyOwner {
@@ -72,6 +76,9 @@ contract MPOStorage is Ownable{
 
 	function getClientQueryId() external view returns(uint256){
 		return clientQueryId;
+	}
+	function getClientQueryId(uint256 mpoId) external view returns(uint256){
+		return mpoToClientId[mpoId];;
 	}
 
 	function getQueryStatus(uint256 queryId) external view returns(uint256){
