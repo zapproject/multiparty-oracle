@@ -77,6 +77,7 @@ contract('Dispatch', function (accounts) {
     const offchainOwner = accounts[4];
     const offchainOwner2 = accounts[5];
     const offchainOwner3 = accounts[6];
+    const offchainSubscriber = accounts[7];
 
     const tokensForOwner = new BigNumber("5000e18");
     const tokensForSubscriber = new BigNumber("3000e18");
@@ -130,7 +131,7 @@ contract('Dispatch', function (accounts) {
 
     });
 
-    it("MULTIPARTY ORACLE_0 - Offchain Provider Test", async function () {
+    it("MULTIPARTY ORACLE_0 - Check that MPO can make queries to multple Offchain Providers", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -226,6 +227,7 @@ contract('Dispatch', function (accounts) {
         
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
+
         await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
         console.log(dislogs);
         for(let i in dislogs) console.log(dislogs[i].args["id"]);
@@ -241,13 +243,12 @@ contract('Dispatch', function (accounts) {
         await expect(result).to.be.equal("Hello World")
 
 
-        // OracleEvents.stopWatching();
-        // dispatchEvents.stopWatching();
-        // subscriberEvents.stopWatching();
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
     });
 
-
-    it("MULTIPARTY ORACLE_1 - Check that the following MPO can query multiple Onchain Providers through dispatch", async function () {
+    it("MULTIPARTY ORACLE_1 - Check that MPO can query multiple Onchain Providers", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -308,6 +309,72 @@ contract('Dispatch', function (accounts) {
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
     });
+
+
+    it("MULTIPARTY ORACLE_2 - Check if offchain subscriber can still make queries to MPO", async function () {
+        //suscribe Client to MPO
+        await prepareTokens.call(this.test, offchainSubscriber);
+        await prepareTokens.call(this.test, provider);
+
+        this.test.p1 = await Provider.new(this.test.registry.address);
+        this.test.p2 = await Provider2.new(this.test.registry.address);
+        this.test.p3 = await Provider.new(this.test.registry.address);
+
+
+        this.test.MPOStorage = await MPOStorage.new();
+        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+
+        var MPOAddr = this.test.MPO.address;
+        //var subAddr = this.test.subscriber.address; 
+        var p1Addr = this.test.p1.address;
+        var p2Addr = this.test.p2.address;
+        var p3Addr = this.test.p3.address;
+
+        // watch events
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
+        
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
+
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
+
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: offchainSubscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+
+
+        await this.test.bondage.delegateBond(offchainSubscriber, MPOAddr, spec2, 100, {from: offchainSubscriber});
+        
+        //eventually the MPO will have to bond to multiple providers through a FOR loop
+        await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
+
+
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+
+        //client queries MPO through dispatch
+        //await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
+        await this.test.dispatch.query(MPOAddr, query, spec2, params, true, false, {from: offchainSubscriber});
+
+        let sublogs = await subscriberEvents.get();
+        let mpologs = await OracleEvents.get();
+        let dislogs = await dispatchEvents.get();
+
+        console.log(dislogs);
+
+        await expect(isEventReceived(dislogs, "OffchainResult1")).to.be.equal(true);
+        var result = dislogs[dislogs.length - 1].args["response1"]
+        await expect(result).to.be.equal("Hello World")
+
+
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
+    });
+
 
     // it("MULTIPARTY ORACLE_2 - Check that the following MPO can query multiple Onchain Providers through dispatch", async function () {
     //     //suscribe Client to MPO
