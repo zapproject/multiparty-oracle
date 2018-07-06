@@ -12,7 +12,6 @@ const expect = require('chai')
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
-const OffchainProvider = require("../components/Provider");
 
 const Dispatch = artifacts.require("Dispatch");
 const DispatchStorage = artifacts.require("DispatchStorage");
@@ -152,6 +151,33 @@ contract('Dispatch', function (accounts) {
                 [0,1000],
                 [1],
                 {from: offchainOwner});
+            await this.test.registry.initiateProvider(
+                23456,
+                "OffchainProvider2",
+                spec1,
+                params,
+                {from: offchainOwner2});
+
+            await this.test.registry.initiateProviderCurve(
+                spec1,
+                [2,2,2],
+                [0,1000],
+                [1],
+                {from: offchainOwner2});
+            await this.test.registry.initiateProvider(
+                23456,
+                "OffchainProvider3",
+                spec1,
+                params,
+                {from: offchainOwner3});
+
+            await this.test.registry.initiateProviderCurve(
+                spec1,
+                [2,2,2],
+                [0,1000],
+                [1],
+                {from: offchainOwner3});
+
 
         // this.test.p1 = await Provider.new(this.test.registry.address);
         // this.test.p2 = await Provider2.new(this.test.registry.address);
@@ -186,10 +212,13 @@ contract('Dispatch', function (accounts) {
         
         //eventually the MPO will have to bond to multiple providers through a FOR loop
         await this.test.bondage.delegateBond(MPOAddr, offchainOwner, spec1, 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, offchainOwner2, spec1, 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, offchainOwner3, spec1, 100, {from: provider});
+
         // await this.test.bondage.delegateBond(MPOAddr, p2Addr, spec1, 100, {from: provider});
         // await this.test.bondage.delegateBond(MPOAddr, p3Addr, spec1, 100, {from: provider});
 
-        this.test.MPO.setParams([offchainOwner], this.test.subscriber.address, 1);
+        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], this.test.subscriber.address, 1);
 
         // //client queries MPO through dispatch
         await this.test.subscriber.testQuery(MPOAddr, query, spec1, params)
@@ -199,7 +228,11 @@ contract('Dispatch', function (accounts) {
         let dislogs = await dispatchEvents.get();
         await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
         console.log(dislogs);
+        for(let i in dislogs) console.log(dislogs[i].args["id"]);
         await this.test.dispatch.respond1(dislogs[0].args["id"], "Hello World", {from: offchainOwner});
+        await this.test.dispatch.respond1(dislogs[1].args["id"], "Hello World", {from: offchainOwner2});
+        await this.test.dispatch.respond1(dislogs[2].args["id"], "Hello World", {from: offchainOwner3});
+
         // console.log(sublogs);
         let sublogs = await subscriberEvents.get();
         console.log(sublogs)
