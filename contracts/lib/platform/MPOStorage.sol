@@ -12,7 +12,8 @@ contract MPOStorage is Ownable{
 	mapping(uint256 => mapping(string => uint256) ) responseTally; // Tally of each response.
 	mapping(uint256 => mapping(address => bool)) oneAddressResponse; // Make sure each party can only submit one response
 	mapping(uint256 => uint256) mpoToClientId;
-	
+	mapping(uint256 => bool) isOnChain;
+
 	uint256 threshold;
 	address[] responders;
 
@@ -55,9 +56,9 @@ contract MPOStorage is Ownable{
 	}
 
 	//Get Methods/Accessors
-	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
-		return oneAddressResponse[queryId][party];
-	}
+	// function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
+	// 	return oneAddressResponse[queryId][party];
+	// }
 	function getThreshold() external view returns(uint) { 
 		return threshold;
 	}
