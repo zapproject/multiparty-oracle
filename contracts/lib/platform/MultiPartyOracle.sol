@@ -61,9 +61,6 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
 
         // For Offchain providers
-
-
-        
         bytes32 hash = keccak256(endpoint);
         if(hash == keccak256(spec1)) {
             stor.setQueryStatus(id,1);
@@ -86,17 +83,32 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     //query offchain providers
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
        //set query status to 1
-        for(uint i=0; i<stor.getNumResponders(); i++) {      
-          stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, "Hello?", endpointParams, false, true),
+        uint i;
+        if(keccak256(userQuery) == keccak256("Hello?")) {
+            for(i=0; i<stor.getNumResponders(); i++) {      
+                stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, "Hello?", endpointParams, false, true),
                                 id);
+            }
+        } else if(keccak256(userQuery) == keccak256("Reverse")) {
+            for(i=0; i<stor.getNumResponders(); i++) {      
+                stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, "Reverse", endpointParams, false, true),
+                                id);
+            }
         }
     }
 
     //query onchain providers
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         //set queryStatus to 2
-        for(uint i=0; i<stor.getNumResponders(); i++) {      
-          dispatch.query(stor.getResponderAddress(i), userQuery, "Hello?", endpointParams, true, true);
+        uint i;
+        if(keccak256(userQuery) == keccak256("Hello?")) {
+            for(i=0; i<stor.getNumResponders(); i++) {      
+                dispatch.query(stor.getResponderAddress(i), userQuery, "Hello?", endpointParams, true, true);
+            }
+        } else if(keccak256(userQuery) == keccak256("Reverse")) {
+            for(i=0; i<stor.getNumResponders(); i++) {      
+                dispatch.query(stor.getResponderAddress(i), userQuery, "Reverse", endpointParams, true, true);
+            }
         }
     }
 

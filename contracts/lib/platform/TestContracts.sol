@@ -78,7 +78,8 @@ contract TestProvider is OnChainProvider {
     // return the hash of the query
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         // endpointParams
-        string memory reversed = reverseString(userQuery);
+        string memory str = bytes32ToString(endpointParams[0]);
+        string memory reversed = reverseString(str);
         Dispatch(msg.sender).respond1(id, reversed);
     }
 
@@ -118,15 +119,21 @@ contract TestProvider is OnChainProvider {
     }
 
 
-    function bytes32ToString (bytes32 data) internal pure returns (string) {
+    function bytes32ToString(bytes32 x) constant returns (string) {
         bytes memory bytesString = new bytes(32);
-        for (uint j=0; j<32; j++) {
-            byte char = byte(bytes32(uint(data) * 2 ** (8 * j)));
+        uint charCount = 0;
+        for (uint j = 0; j < 32; j++) {
+            byte char = byte(bytes32(uint(x) * 2 ** (8 * j)));
             if (char != 0) {
-                bytesString[j] = char;
+                bytesString[charCount] = char;
+                charCount++;
             }
         }
-        return string(bytesString);
+        bytes memory bytesStringTrimmed = new bytes(charCount);
+        for (j = 0; j < charCount; j++) {
+            bytesStringTrimmed[j] = bytesString[j];
+        }
+        return string(bytesStringTrimmed);
     }
 
 }
@@ -203,7 +210,8 @@ contract TestProvider2 is OnChainProvider {
     // return the hash of the query
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         // endpointParams
-        string memory reversed = reverseString(userQuery);
+        string memory str = bytes32ToString(endpointParams[0]);
+        string memory reversed = reverseString(str);
         Dispatch(msg.sender).respond1(id, reversed);
     }
 
@@ -243,15 +251,21 @@ contract TestProvider2 is OnChainProvider {
     }
 
 
-    function bytes32ToString (bytes32 data) internal pure returns (string) {
+    function bytes32ToString(bytes32 x) constant returns (string) {
         bytes memory bytesString = new bytes(32);
-        for (uint j=0; j<32; j++) {
-            byte char = byte(bytes32(uint(data) * 2 ** (8 * j)));
+        uint charCount = 0;
+        for (uint j = 0; j < 32; j++) {
+            byte char = byte(bytes32(uint(x) * 2 ** (8 * j)));
             if (char != 0) {
-                bytesString[j] = char;
+                bytesString[charCount] = char;
+                charCount++;
             }
         }
-        return string(bytesString);
+        bytes memory bytesStringTrimmed = new bytes(charCount);
+        for (j = 0; j < charCount; j++) {
+            bytesStringTrimmed[j] = bytesString[j];
+        }
+        return string(bytesStringTrimmed);
     }
 
 }
