@@ -844,7 +844,7 @@ contract('Dispatch', function (accounts) {
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
     });
-    it("MULTIPARTY ORACLE_8 - Revert if no providers", async function () {
+    it("MULTIPARTY ORACLE_10 - Revert if no providers", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -887,7 +887,7 @@ contract('Dispatch', function (accounts) {
     });
 
 
-    it("MULTIPARTY ORACLE_10 - Check that client can query multiple endpoints of offchain providers.", async function () {
+    it("MULTIPARTY ORACLE_11 - Check that client can query multiple endpoints of offchain providers.", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         //await prepareTokens.call(this.test, subscriber2);
@@ -940,7 +940,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Reverse", 100, {from: provider});
        // await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Reverse", 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query2, spec2, ["Test"]);
 
