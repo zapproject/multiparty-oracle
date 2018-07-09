@@ -219,7 +219,7 @@ contract('Dispatch', function (accounts) {
         // await this.test.bondage.delegateBond(MPOAddr, p2Addr, spec1, 100, {from: provider});
         // await this.test.bondage.delegateBond(MPOAddr, p3Addr, spec1, 100, {from: provider});
 
-        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 2);
 
         // //client queries MPO through dispatch
         await this.test.subscriber.testQuery(MPOAddr, query, spec1, params)
@@ -289,7 +289,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
         //client queries MPO through dispatch
         await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
@@ -353,7 +353,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
         //client queries MPO through dispatch
         //await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
@@ -425,7 +425,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
 
         // let addr = await this.test.MPOStorage.getClient();
@@ -504,7 +504,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 3);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 3);
 
         await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
         await this.test.subscriber2.testQuery(MPOAddr, query, spec2, params)
@@ -573,7 +573,7 @@ contract('Dispatch', function (accounts) {
     //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Reverse", 100, {from: provider});
     //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Reverse", 100, {from: provider});
 
-    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr],  2);
 
     //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params);
     //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params);
@@ -656,7 +656,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Reverse", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Reverse", 100, {from: provider});
 
-        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query, spec2, params);
 
@@ -723,7 +723,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        await expect(this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 0)).to.be.eventually.rejectedWith(EVMRevert);;
+        await expect(this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 0)).to.be.eventually.rejectedWith(EVMRevert);;
         await expect(this.test.subscriber.testQuery(MPOAddr, query, spec2, params)).to.be.eventually.rejectedWith(EVMRevert);
 
         
@@ -777,7 +777,7 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        await expect(this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], this.test.subscriber.address, 4)).to.be.eventually.rejectedWith(EVMRevert);
+        await expect(this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 4)).to.be.eventually.rejectedWith(EVMRevert);
         await expect(this.test.subscriber.testQuery(MPOAddr, query, spec2, params)).to.be.eventually.rejectedWith(EVMRevert);
 
         
@@ -818,7 +818,7 @@ contract('Dispatch', function (accounts) {
         
         //eventually the MPO will have to bond to multiple providers through a FOR loop
 
-        await expect(this.test.MPO.setParams([], this.test.subscriber.address, 4)).to.be.eventually.rejectedWith(EVMRevert);
+        await expect(this.test.MPO.setParams([], 4)).to.be.eventually.rejectedWith(EVMRevert);
         await expect(this.test.subscriber.testQuery(MPOAddr, query, spec2, params)).to.be.eventually.rejectedWith(EVMRevert);
 
         

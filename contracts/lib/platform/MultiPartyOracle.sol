@@ -76,11 +76,10 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         }
     }
 
-    function setParams(address[] _responders, address _client, uint256 _threshold) public {
+    function setParams(address[] _responders, uint256 _threshold) public {
         require(_threshold>0 && _threshold <= _responders.length);    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
-        stor.setClient(_client);
     }
 
     //query offchain providers
