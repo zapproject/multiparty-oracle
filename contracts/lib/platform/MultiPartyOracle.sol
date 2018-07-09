@@ -57,6 +57,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
     // middleware function for handling queries
     function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
+        require(stor.getThreshold() > 0 && stor.getThreshold() <= stor.getNumResponders());    
         require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
 
         // For Offchain providers
