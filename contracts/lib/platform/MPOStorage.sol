@@ -9,7 +9,7 @@ contract MPOStorage is Ownable{
 	mapping(uint256 => uint256) queryStatus;// Threshold reached, do not accept any more responses
 	mapping(uint256 => mapping(string => uint256) ) responseTally; // Tally of each response.
 	mapping(uint256 => uint256) mpoToClientId;
-
+	
 	uint256 threshold;
 	address[] responders;
 

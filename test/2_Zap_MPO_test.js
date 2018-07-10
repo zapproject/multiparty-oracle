@@ -483,90 +483,7 @@ contract('Dispatch', function (accounts) {
         subscriber2Events.stopWatching();
     }); 
 
-    // it("MULTIPARTY ORACLE_5 - Check that client can make query to differend enpoints on Multiparty Oracle.", async function () {
-    //     //suscribe Client to MPO
-    //     await prepareTokens.call(this.test, subscriber);
-    //     //await prepareTokens.call(this.test, subscriber2);
-    //     await prepareTokens.call(this.test, provider);
-
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider2.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
-
-
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
-
-
-    //     var MPOAddr = this.test.MPO.address;
-    //     var subAddr = this.test.subscriber.address;
-    //     //var subAddr2 = this.test.subscriber2.address;  
-    //     var p1Addr = this.test.p1.address;
-    //     var p2Addr = this.test.p2.address;
-    //     var p3Addr = this.test.p3.address;
-
-    //     // watch events
-    //     const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     dispatchEvents.watch((err, res) => { });
-        
-    //     const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     subscriberEvents.watch((err, res) => { }); 
-    
-    //     const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     OracleEvents.watch((err, res) => { }); 
-
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
-    //     //await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber2});
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
-
-
-    //     await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
-    //     await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
-    //     //await this.test.bondage.delegateBond(subAddr2, MPOAddr, spec1, 100, {from: subscriber2});
-        
-    //     //eventually the MPO will have to bond to multiple providers through a FOR loop
-    //     await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
-
-    //     await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Reverse", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Reverse", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Reverse", 100, {from: provider});
-
-    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr],  2);
-
-    //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params);
-    //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params);
-    //     //await this.test.subscriber2.testQuery(MPOAddr, this.test.dispatch.address, spec1, params)
-
-    //     let sublogs = await subscriberEvents.get();
-    //     let mpologs = await OracleEvents.get();
-    //     let dislogs = await dispatchEvents.get();
-
-    //     console.log(sublogs);
-
-    //     await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
-        
-
-    //     var results = [];
-    //     results.push(sublogs[0].args["response1"]);
-    //     results.push(sublogs[1].args["response1"]);
-
-    //     console.log(results);
-    //     await expect(results).to.include( 'yreuq','Hello World');
-
-    //     // await expect(result).to.be.equal("Hello World");
-        
-    //     // var result2 = 
-    //     // await expect(result2).to.be.equal("yreuq");
-
-    //     OracleEvents.stopWatching();
-    //     dispatchEvents.stopWatching();
-    //     subscriberEvents.stopWatching();
-    // });   
-
-    it("MULTIPARTY ORACLE_6 - Check to see what happens if Onchain providers send responses after queryid has been met", async function () {
+    it("MULTIPARTY ORACLE_5 - Check to see what happens if Onchain providers send responses after queryid has been met", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -630,7 +547,7 @@ contract('Dispatch', function (accounts) {
         subscriberEvents.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_7 - Should revert if number of providers === 0.", async function () {
+    it("MULTIPARTY ORACLE_6 - Should revert if number of providers === 0.", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -677,7 +594,7 @@ contract('Dispatch', function (accounts) {
         subscriberEvents.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_8 - Revert if Threshold is 0", async function () {
+    it("MULTIPARTY ORACLE_7 - Revert if Threshold is 0", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -727,7 +644,7 @@ contract('Dispatch', function (accounts) {
         subscriberEvents.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_9 - Revert if Threshold is greater than number of responders", async function () {
+    it("MULTIPARTY ORACLE_8 - Revert if Threshold is greater than number of responders", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -776,7 +693,7 @@ contract('Dispatch', function (accounts) {
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
     });
-    it("MULTIPARTY ORACLE_10 - Revert if no providers", async function () {
+    it("MULTIPARTY ORACLE_9 - Revert if no providers", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -814,7 +731,7 @@ contract('Dispatch', function (accounts) {
     });
 
 
-    it("MULTIPARTY ORACLE_11 - Check that client can query multiple endpoints of onchain providers.", async function () {
+    it("MULTIPARTY ORACLE_10 - Check that client can query multiple endpoints of onchain providers.", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -879,7 +796,7 @@ contract('Dispatch', function (accounts) {
         subscriberEvents.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_12 - Check that MPO can make queries to multple Offchain Providers", async function () {
+    it("MULTIPARTY ORACLE_11 - Check that MPO can make queries to multple Offchain Providers", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);
@@ -1013,7 +930,7 @@ contract('Dispatch', function (accounts) {
         subscriberEvents.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_13 - Check that 2 separate clients can make queries to MultiParty Oracle.", async function () {
+    it("MULTIPARTY ORACLE_12 - Check that 2 separate clients can make queries to MultiParty Oracle.", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, subscriber2);
