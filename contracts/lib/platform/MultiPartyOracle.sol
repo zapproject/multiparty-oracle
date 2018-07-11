@@ -14,6 +14,15 @@ import "../../platform/dispatch/DispatchInterface.sol";
 contract MultiPartyOracle is OnChainProvider, Client1 {
     event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
     event ReceivedResponse(uint256 queryId, address responder, string response);
+    event Incoming(
+        uint256 id,
+        address provider,
+        address subscriber,
+        string query,
+        bytes32 endpoint,
+        bytes32[] endpointParams,
+        bool onchainSubscriber
+    );
 
     event Result1(uint256 id, string response1);
 
@@ -27,6 +36,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
 
     bytes32 public spec1 = "Offchain";
     bytes32 public spec2 = "Onchain";
+    bytes32 public spec3 = "Nonproviders";
 
     // curve 2x^2
     int[] constants = [2, 2, 0];
@@ -40,7 +50,6 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         stor = MPOStorage(mpoStorageAddress);
         dispatchAddress = _dispatchAddress;
 
-        
 
         // initialize in registry
         bytes32 title = "MultiPartyOracle";
@@ -51,6 +60,7 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         registry.initiateProvider(12345, title, spec1, params);
         registry.initiateProviderCurve(spec1, constants, parts, dividers);
         registry.initiateProviderCurve(spec2, constants, parts, dividers);
+        registry.initiateProviderCurve(spec3, constants, parts, dividers);
 
     }
 
@@ -70,6 +80,11 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
             stor.setQueryStatus(id,2);
             stor.setClientQueryId(id);
             endpoint2(id, userQuery, endpointParams);
+        }
+        else if(hash == keccak256(spec3)) {
+            stor.setQueryStatus(id,1);
+            stor.setClientQueryId(id);
+            endpoint3(id, userQuery, endpointParams);
         }
     }
 
@@ -111,8 +126,25 @@ contract MultiPartyOracle is OnChainProvider, Client1 {
         }
     }
 
+    //query nonproviders
+    function endpoint3(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+        uint256 mpoid;
+        for(uint i=0; i<stor.getNumResponders(); i++) {      
+            mpoid=uint256(keccak256(
+                block.number, now, userQuery,id,stor.getResponderAddress(i)
+                ));
+            stor.setClientQueryId(mpoid, id);
+            emit Incoming(mpoid, stor.getResponderAddress(i),this, userQuery, "Hello?", endpointParams, true);
+                
+        }
+    }
+
+
     function callback(uint256 queryId, string response) external {
-        require(msg.sender == dispatchAddress);
+        require(msg.sender == dispatchAddress||
+        (stor.getAddressStatus(msg.sender) &&
+        !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)));
+        
         if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
             stor.addResponse(stor.getClientQueryId(queryId), response, msg.sender);
             emit ReceivedResponse(stor.getClientQueryId(queryId), msg.sender, response);
