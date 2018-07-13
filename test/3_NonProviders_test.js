@@ -19,7 +19,7 @@ const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
 const Provider2 = artifacts.require("TestProvider2");
-const ansi = require('ansicolor').nice;
+// const ansi = require('ansicolor').nice;
 
 // const Subscriber = artifacts.require("Subscriber");
 
@@ -165,8 +165,7 @@ contract('Dispatch', function (accounts) {
         function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
             return "Hello World"
         }
-        for(let i in inclog
-            s){
+        for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 console.log(inclogs[i].args)
                 // Insert data handling here
