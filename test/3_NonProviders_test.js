@@ -19,6 +19,7 @@ const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
 const Provider2 = artifacts.require("TestProvider2");
+const ansi = require('ansicolor').nice;
 
 // const Subscriber = artifacts.require("Subscriber");
 
@@ -137,7 +138,11 @@ contract('Dispatch', function (accounts) {
 
         const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
         OracleEvents.watch((err, res) => { }); 
-       
+        
+        const incomingEvents = this.test.MPO.Incoming({ fromBlock: 0, toBlock: 'latest' });
+        incomingEvents.watch((err, res) => { }); 
+        
+
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
@@ -149,20 +154,38 @@ contract('Dispatch', function (accounts) {
 
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
+        let inclogs = await incomingEvents.get();
 
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
-        //console.log(mpologs);
+        // console.log(inclogs);
 
         // console.log(mpologs[1]);
         // console.log(mpologs[2]);
         // console.log(mpologs[3]);
-        
-        await this.test.MPO.callback(mpologs[1].args["id"], "Hello World", {from: offchainOwner});
-        await this.test.MPO.callback(mpologs[2].args["id"], "Hello World", {from: offchainOwner2});
-        await this.test.MPO.callback(mpologs[3].args["id"], "Hello World", {from: offchainOwner3});
+        function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
+            return "Hello World"
+        }
+        for(let i in inclog
+            s){
+            if(accounts.includes(inclogs[i].args.provider)){
+                console.log(inclogs[i].args)
+                // Insert data handling here
+                await this.test.MPO.callback(inclogs[i].args.id,
+                 dataHandle(inclogs[i].args.query,
+                            inclogs[i].args.endpoint,
+                            inclogs[i].args.endpointParams,
+
+                            inclogs[i].args.onchainSubscriber),
+                  {from: inclogs[i].args.provider});   
+                }
+
+        }
+        // await this.test.MPO.callback(mpologs[1].args["id"], "Hello World", {from: offchainOwner});
+        // await this.test.MPO.callback(mpologs[2].args["id"], "Hello World", {from: offchainOwner2});
+        // await this.test.MPO.callback(mpologs[3].args["id"], "Hello World", {from: offchainOwner3});
 
         let sublogs = await subscriberEvents.get();
-        console.log(sublogs)
+        //console.log(sublogs)
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var result = sublogs[0].args["response1"]
         await expect(result).to.be.equal("Hello World")
