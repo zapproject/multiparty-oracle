@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./MPOStorage.sol";
+import "./MultiPartyOracle.sol";
 import "./OnChainProvider.sol";
 import "./Client.sol";
 
@@ -11,7 +12,7 @@ import "../../platform/bondage/BondageInterface.sol";
 import "../../platform/registry/RegistryInterface.sol";
 import "../../platform/dispatch/DispatchInterface.sol";
 
-contract MultiPartyOracle is OnChainProvider{
+contract MPO4 is OnChainProvider, Client4{
     event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
     event ReceivedResponse(uint256 queryId, address responder, string response);
     event Incoming(
@@ -24,7 +25,7 @@ contract MultiPartyOracle is OnChainProvider{
         bool onchainSubscriber
     );
 
-    event Result1(uint256 id, string response1);
+    event Result4(uint256 id, string response1, string response2, string response3, string response4);
 
     DispatchInterface dispatch;
     RegistryInterface registry;
@@ -140,31 +141,31 @@ contract MultiPartyOracle is OnChainProvider{
     }
 
 
-    // function callback(uint256 queryId, string response) external {
-    //     require(msg.sender == dispatchAddress||
-    //     (stor.getAddressStatus(msg.sender) &&
-    //     !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)));
+    function callback(uint256 queryId, string response, string response2, string response3, string response4) external {
+        require(msg.sender == dispatchAddress||
+        (stor.getAddressStatus(msg.sender) &&
+        !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)));
         
-    //     if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
-    //         stor.addResponse(stor.getClientQueryId(queryId), response, msg.sender);
-    //         emit ReceivedResponse(stor.getClientQueryId(queryId), msg.sender, response);
-    //         if(stor.getTally(stor.getClientQueryId(queryId), response) >= stor.getThreshold()) {
-    //             stor.setQueryStatus(stor.getClientQueryId(queryId), 3);
-    //             emit Result1(stor.getClientQueryId(queryId), response);
-    //             dispatch.respond1(stor.getClientQueryId(queryId), response);
-    //         }
-    //     }
-    //     else if(stor.getQueryStatus(stor.getClientQueryId()) == 2){
-    //         stor.addResponse(stor.getClientQueryId(), response, msg.sender);
-    //         emit ReceivedResponse(stor.getClientQueryId(), msg.sender, response);
-    //         if(stor.getTally(stor.getClientQueryId(), response) >= stor.getThreshold()) {
-    //             stor.setQueryStatus(stor.getClientQueryId(), 3);
-    //             emit Result1(stor.getClientQueryId(), response);
-    //             dispatch.respond1(stor.getClientQueryId(), response);
-    //         }
+        if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
+            stor.addResponse(stor.getClientQueryId(queryId), response, msg.sender);
+            emit ReceivedResponse(stor.getClientQueryId(queryId), msg.sender, response);
+            if(stor.getTally(stor.getClientQueryId(queryId), response) >= stor.getThreshold()) {
+                stor.setQueryStatus(stor.getClientQueryId(queryId), 3);
+                emit Result4(stor.getClientQueryId(queryId), response, response2,response3, response4);
+                dispatch.respond4(stor.getClientQueryId(queryId), response, response2,response3, response4);
+            }
+        }
+        else if(stor.getQueryStatus(stor.getClientQueryId()) == 2){
+            stor.addResponse(stor.getClientQueryId(), response, msg.sender);
+            emit ReceivedResponse(stor.getClientQueryId(), msg.sender, response);
+            if(stor.getTally(stor.getClientQueryId(), response) >= stor.getThreshold()) {
+                stor.setQueryStatus(stor.getClientQueryId(), 3);
+                emit Result4(stor.getClientQueryId(), response, response2, response3, response4);
+                dispatch.respond4(stor.getClientQueryId(), response, response2, response3, response4);
+            }
 
-    //     }
+        }
 
-    // }
+    }
 
 }

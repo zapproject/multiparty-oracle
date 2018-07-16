@@ -24,6 +24,8 @@ const Provider2 = artifacts.require("TestProvider2");
 // const Subscriber = artifacts.require("Subscriber");
 
 const MPO = artifacts.require("MultiPartyOracle");
+const MPO2 = artifacts.require("MPO2");
+
 const MPOStorage = artifacts.require("MPOStorage");
 
 function showReceivedEvents(res) {
@@ -119,7 +121,7 @@ contract('Dispatch', function (accounts) {
         this.currentTest.subscriber2 = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
     
         this.currentTest.MPOStorage = await MPOStorage.new();
-        this.currentTest.MPO = await MPO.new(this.currentTest.registry.address, this.currentTest.dispatch.address, this.currentTest.MPOStorage.address);
+        this.currentTest.MPO = await MPO2.new(this.currentTest.registry.address, this.currentTest.dispatch.address, this.currentTest.MPOStorage.address);
         await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
     });
 
@@ -169,12 +171,12 @@ contract('Dispatch', function (accounts) {
             if(accounts.includes(inclogs[i].args.provider)){
                 console.log(inclogs[i].args)
                 // Insert data handling here
-                await this.test.MPO.callback(inclogs[i].args.id,
-                 dataHandle(inclogs[i].args.query,
-                            inclogs[i].args.endpoint,
-                            inclogs[i].args.endpointParams,
+                await this.test.MPO.callback(inclogs[i].args.id,"Hello","World",
+                 // dataHandle(inclogs[i].args.query,
+                 //            inclogs[i].args.endpoint,
+                 //            inclogs[i].args.endpointParams,
 
-                            inclogs[i].args.onchainSubscriber),
+                 //            inclogs[i].args.onchainSubscriber),
                   {from: inclogs[i].args.provider});   
                 }
 
@@ -185,10 +187,11 @@ contract('Dispatch', function (accounts) {
 
         let sublogs = await subscriberEvents.get();
         //console.log(sublogs)
-        await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
+        await expect(isEventReceived(sublogs, "Result2")).to.be.equal(true);
         var result = sublogs[0].args["response1"]
-        await expect(result).to.be.equal("Hello World")
-
+        await expect(result).to.be.equal("Hello")
+        result = sublogs[0].args["response2"]
+        await expect(result).to.be.equal("World")
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
