@@ -161,9 +161,6 @@ contract('Dispatch', function (accounts) {
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
 
-        // console.log(mpologs[1]);
-        // console.log(mpologs[2]);
-        // console.log(mpologs[3]);
         function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
             return "Hello World"
         }
@@ -172,19 +169,10 @@ contract('Dispatch', function (accounts) {
                 console.log(inclogs[i].args)
                 // Insert data handling here
                 await this.test.MPO.callback(inclogs[i].args.id,"Hello","World",
-                 // dataHandle(inclogs[i].args.query,
-                 //            inclogs[i].args.endpoint,
-                 //            inclogs[i].args.endpointParams,
-
-                 //            inclogs[i].args.onchainSubscriber),
                   {from: inclogs[i].args.provider});   
                 }
 
         }
-        // await this.test.MPO.callback(mpologs[1].args["id"], "Hello World", {from: offchainOwner});
-        // await this.test.MPO.callback(mpologs[2].args["id"], "Hello World", {from: offchainOwner2});
-        // await this.test.MPO.callback(mpologs[3].args["id"], "Hello World", {from: offchainOwner3});
-
         let sublogs = await subscriberEvents.get();
         //console.log(sublogs)
         await expect(isEventReceived(sublogs, "Result2")).to.be.equal(true);
