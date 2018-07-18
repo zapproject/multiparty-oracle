@@ -11,7 +11,7 @@ import "../../platform/bondage/BondageInterface.sol";
 import "../../platform/registry/RegistryInterface.sol";
 import "../../platform/dispatch/DispatchInterface.sol";
 
-contract MultiPartyOracle is OnChainProvider, Client1 {
+contract MultiPartyOracle is OnChainProvider, Client1{
     event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
     event ReceivedResponse(uint256 queryId, address responder, string response);
     event Incoming(

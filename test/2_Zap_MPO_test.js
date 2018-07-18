@@ -28,6 +28,8 @@ const Provider2 = artifacts.require("TestProvider2");
 // const Subscriber = artifacts.require("Subscriber");
 
 const MPO = artifacts.require("MultiPartyOracle");
+const MPO1 = artifacts.require("MPO1");
+
 const MPOStorage = artifacts.require("MPOStorage");
 
 function showReceivedEvents(res) {
@@ -172,7 +174,7 @@ contract('Dispatch', function (accounts) {
                 {from: offchainOwner3});
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -234,7 +236,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -295,7 +297,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -357,7 +359,7 @@ contract('Dispatch', function (accounts) {
 
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -429,7 +431,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -493,7 +495,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -557,7 +559,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -604,7 +606,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -654,7 +656,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -699,7 +701,7 @@ contract('Dispatch', function (accounts) {
         await prepareTokens.call(this.test, provider);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -741,7 +743,7 @@ contract('Dispatch', function (accounts) {
         this.test.p3 = await Provider.new(this.test.registry.address);
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -860,7 +862,7 @@ contract('Dispatch', function (accounts) {
             {from: offchainOwner3});
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -978,7 +980,7 @@ contract('Dispatch', function (accounts) {
             {from: offchainOwner3});
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         var MPOAddr = this.test.MPO.address;
@@ -1093,7 +1095,7 @@ contract('Dispatch', function (accounts) {
             {from: offchainOwner2});
 
         this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
+        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
         await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
 
         this.test.p3 = await Provider.new(this.test.registry.address);
