@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./MPOStorage.sol";
+import "./MultiPartyOracle.sol";
 import "./OnChainProvider.sol";
 import "./Client.sol";
 
@@ -11,7 +12,11 @@ import "../../platform/bondage/BondageInterface.sol";
 import "../../platform/registry/RegistryInterface.sol";
 import "../../platform/dispatch/DispatchInterface.sol";
 
-contract MultiPartyOracle is OnChainProvider, Client1{
+// @title - A MultiPartyOracle contract that implements the client1 callback
+// @authors - Max Inciong, Jonathan Pang, Jon Morales
+// @notice the contract receives queries from dispatch and queries multiple providers to resolve the query
+
+contract MPO1 is OnChainProvider, Client1{
     event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
     event ReceivedResponse(uint256 queryId, address responder, string response);
     event Incoming(
@@ -42,7 +47,11 @@ contract MultiPartyOracle is OnChainProvider, Client1{
     int[] constants = [2, 2, 0];
     uint[] parts = [0, 1000000000];
     uint[] dividers = [1]; 
-
+    // @notice constructor that sets up zap registry, dispatch, and MPO storage. Also sets up registry provider curve
+    // @param address registryAddress
+    // @param address _dispatchAddress
+    // @param address mpoStorageAddress
+    
     constructor(address registryAddress, address _dispatchAddress, address mpoStorageAddress) public{
 
         registry = RegistryInterface(registryAddress);
@@ -65,6 +74,12 @@ contract MultiPartyOracle is OnChainProvider, Client1{
     }
 
     // middleware function for handling queries
+    // @notice recieves query, called from dispatch
+    // @param uint256 id Dispatch created query ID
+    // @param string userQuery User provided query String
+    // @param bytes32 endpoint Determines whether to use Onchain Providers, Offchain Providers, Non-Providers
+    // @param bytes32[] endpointParams Parameters passed to providers
+    // @param bool onchainSubscriber Unused boolean that determines if subscriber is a smart contract
     function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
         require(stor.getThreshold() > 0 && stor.getThreshold() <= stor.getNumResponders());    
@@ -88,13 +103,19 @@ contract MultiPartyOracle is OnChainProvider, Client1{
         }
     }
 
+    // @notice Pseudo Constructor that sets providers and threshold required to call back dispatch
+    // @param address[] _responders list of providers to query with client query
+    // @param uint256 _threshold the MPO must reach a number of similar responses equal to this amount before calling dispatch.respond
     function setParams(address[] _responders, uint256 _threshold) public {
         require(_threshold>0 && _threshold <= _responders.length);    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
     }
 
-    //query offchain providers
+    //@Notice query offchain providers
+    // @param uint256 id Client query ID, passed to dispatch and stored in a mapping to dispatch generated MPO IDs
+    // @param string userQuery passed to provider for use
+    // @param bytes32[] endpointParams passed to provider for use
     function endpoint1(uint256 id, string userQuery, bytes32[] endpointParams) internal{
        //set query status to 1
         uint i;
@@ -111,7 +132,10 @@ contract MultiPartyOracle is OnChainProvider, Client1{
         }
     }
 
-    //query onchain providers
+    // @notice query onchain providers
+    // @param uint256 unused
+    // @param string userQuery passed to provider for use
+    // @param bytes32[] endpointParams passed to provider for use
     function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         //set queryStatus to 2
         uint i;
@@ -126,7 +150,10 @@ contract MultiPartyOracle is OnChainProvider, Client1{
         }
     }
 
-    //query nonproviders
+    // @notice query nonproviders(Offchain providers not registered through zap dispatch)
+    // @param uint256 id Client query ID,used to generate MPO IDs and map to them
+    // @param string userQuery passed to provider for use
+    // @param bytes32[] endpointParams passed to provider for use
     function endpoint3(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         uint256 mpoid;
         for(uint i=0; i<stor.getNumResponders(); i++) {      
@@ -139,7 +166,10 @@ contract MultiPartyOracle is OnChainProvider, Client1{
         }
     }
 
-
+    // @notice callback used by dispatch or nonproviders once a response has been created for the query
+    // @param queryId MPO or dispatch generated MPOID to used to determine client query ID
+    // @param response Response to be returned to client
+    // @dev query status is 1 if receiving from offchain, 2 if from onchain.
     function callback(uint256 queryId, string response) external {
         require(msg.sender == dispatchAddress||
         (stor.getAddressStatus(msg.sender) &&
@@ -166,5 +196,6 @@ contract MultiPartyOracle is OnChainProvider, Client1{
         }
 
     }
+    
 
 }
