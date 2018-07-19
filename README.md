@@ -53,6 +53,7 @@ MPOStorage is Ownable. At deployment, owner of MPOStorage should transfer owners
     * response: Provider response to query. Can have up to four responses.
 ### Endpoints
 Each of the endpoints take in three parameters:
+
 * `(uint256 id, string userQuery, bytes32[] endpointParams)`
     * id: the client ID. For offchain providers, used to help map the dispatch-generated MPO IDs to the client IDs. For non-providers,used to generate an MPO ID before creating the mapping.
     * userQuery and endpointParams: Passed towards the provider no matter what type. Both endpoints one and two call on dispatch, while endpoint 3 creates an Incoming event. In all three cases, after providers are called, contract waits for providers to call MPO's callback function.
