@@ -2,6 +2,7 @@
 The Multiparty Oracle (MPO) is a novel method of getting reliable data. The client queries the MPO. The MPO then relays this query to multiple designated providers until a "consensus" is reached. At this point the MPO sends the response to the client.
 ## Types of Providers
 The Multiparty Oracle can make queries to three different types of providers:
+
 * Offchain:
     * Registered through Zap Contracts. Listens for MPO events and responds with a contract call, usually with web3.
 * Onchain:
