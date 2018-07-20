@@ -16,7 +16,7 @@ import "../../platform/dispatch/DispatchInterface.sol";
 // @authors - Max Inciong, Jonathan Pang, Jon Morales
 // @notice the contract receives queries from dispatch and queries multiple providers to resolve the query
 
-contract MPO1 is OnChainProvider, Client1{
+contract MultiPartyOracle is OnChainProvider{
     event RecievedQuery(string query, bytes32 endpoint, bytes32[] params, address sender);
     event ReceivedResponse(uint256 queryId, address responder, string response);
     event Incoming(
