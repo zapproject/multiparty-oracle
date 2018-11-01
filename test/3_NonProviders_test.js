@@ -7,23 +7,22 @@ const expect = require('chai')
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
-
+const {hexToUtf8, utf8ToHex} = require("web3-utils");
+const ZapDB = artifacts.require("Database");
+const ZapCoord = artifacts.require("ZapCoordinator");
 const Dispatch = artifacts.require("Dispatch");
-const DispatchStorage = artifacts.require("DispatchStorage");
 const Bondage = artifacts.require("Bondage");
-const BondageStorage = artifacts.require("BondageStorage");
 const Registry = artifacts.require("Registry");
-const RegistryStorage = artifacts.require("RegistryStorage");
 const ZapToken = artifacts.require("ZapToken");
 const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
-const Provider2 = artifacts.require("TestProvider2");
+const Provider2 = artifacts.require("TestProvider");
 
 // const Subscriber = artifacts.require("Subscriber");
 
 const MPO = artifacts.require("MultiPartyOracle");
-const MPO2 = artifacts.require("MPO2");
+// const MPO2 = artifacts.require("MPO2");
 
 const MPOStorage = artifacts.require("MPOStorage");
 
@@ -103,25 +102,34 @@ contract('Dispatch', function (accounts) {
     }
 
     beforeEach(async function deployContracts() {
-        this.currentTest.regStor = await RegistryStorage.new();
-        this.currentTest.registry = await Registry.new(this.currentTest.regStor.address);
-        await this.currentTest.regStor.transferOwnership(this.currentTest.registry.address);
+        this.currentTest.zapdb = await ZapDB.new()
+        this.currentTest.zapcoord = await ZapCoord.new();
+        await this.currentTest.zapdb.transferOwnership(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.addImmutableContract('DATABASE', this.currentTest.zapdb.address);
+
         this.currentTest.token = await ZapToken.new();
+        await this.currentTest.zapcoord.addImmutableContract('ZAP_TOKEN', this.currentTest.token.address);
 
-        this.currentTest.cost = await Cost.new(this.currentTest.registry.address);
-        this.currentTest.bondStor = await BondageStorage.new();
-        this.currentTest.bondage = await Bondage.new(this.currentTest.bondStor.address, this.currentTest.token.address, this.currentTest.cost.address);
-        await this.currentTest.bondStor.transferOwnership(this.currentTest.bondage.address);
+        this.currentTest.registry = await Registry.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('REGISTRY', this.currentTest.registry.address);
 
-        this.currentTest.dispStor = await DispatchStorage.new();
-        this.currentTest.dispatch = await Dispatch.new(this.currentTest.dispStor.address, this.currentTest.bondage.address);
-        await this.currentTest.dispStor.transferOwnership(this.currentTest.dispatch.address);
+        this.currentTest.cost = await Cost.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('CURRENT_COST', this.currentTest.cost.address);
+
+        this.currentTest.bondage = await Bondage.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('BONDAGE', this.currentTest.bondage.address);
+
+        this.currentTest.dispatch = await Dispatch.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('DISPATCH', this.currentTest.dispatch.address);
+
+        await this.currentTest.zapcoord.updateAllDependencies();
+
+        this.currentTest.MPOStorage = await MPOStorage.new();
+        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address);
+        await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
+
         this.currentTest.subscriber = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
         this.currentTest.subscriber2 = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
-    
-        this.currentTest.MPOStorage = await MPOStorage.new();
-        this.currentTest.MPO = await MPO2.new(this.currentTest.registry.address, this.currentTest.dispatch.address, this.currentTest.MPOStorage.address);
-        await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
     });
 
     it("MultiPartyOracle_0 - Check that MPO can emit an incoming event.", async function() {
@@ -168,18 +176,27 @@ contract('Dispatch', function (accounts) {
                 console.log(inclogs[i].args)
                 // Insert data handling here
 
-                await this.test.MPO.callback(inclogs[i].args.id,"Hello","World",
+                await this.test.MPO.callback(inclogs[i].args.id,"Hello",
                   {from: inclogs[i].args.provider});   
                 }
 
         }
         let sublogs = await subscriberEvents.get();
-        //console.log(sublogs)
-        await expect(isEventReceived(sublogs, "Result2")).to.be.equal(true);
-        var result = sublogs[0].args["response1"]
-        await expect(result).to.be.equal("Hello")
-        result = sublogs[0].args["response2"]
-        await expect(result).to.be.equal("World")
+        // console.log(sublogs)
+        await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result = sublogs[i].args["response1"]
+                // Insert data handling here
+                await expect(result).to.be.equal("Hello")
+                
+                }
+
+        }
+        // await expect(result).to.be.equal("Hello")
+        // result = sublogs[0].args["response2"]
+        // await expect(result).to.be.equal("World")
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();

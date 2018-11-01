@@ -23,7 +23,7 @@ const ZapToken = artifacts.require("ZapToken");
 const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
-const Provider2 = artifacts.require("TestProvider2");
+const Provider2 = artifacts.require("TestProvider");
 
 // const Subscriber = artifacts.require("Subscriber");
 
@@ -329,7 +329,7 @@ contract('Dispatch', function (accounts) {
         this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
         //client queries MPO through dispatch
-        await this.test.dispatch.query(MPOAddr, query, spec2, params, true, false, {from: offchainSubscriber});
+        await this.test.dispatch.query(MPOAddr, query, spec2, params, {from: offchainSubscriber});
 
         let sublogs = await subscriberEvents.get();
         let mpologs = await OracleEvents.get();
