@@ -1,8 +1,3 @@
-// import EVMRevert from './helpers/EVMRevert';
-
-
-
-//const web3 = require("web3");
 const BigNumber = web3.BigNumber;
 
 const expect = require('chai')
@@ -12,13 +7,12 @@ const expect = require('chai')
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
-
+const {hexToUtf8, utf8ToHex} = require("web3-utils");
+const ZapDB = artifacts.require("Database");
+const ZapCoord = artifacts.require("ZapCoordinator");
 const Dispatch = artifacts.require("Dispatch");
-const DispatchStorage = artifacts.require("DispatchStorage");
 const Bondage = artifacts.require("Bondage");
-const BondageStorage = artifacts.require("BondageStorage");
 const Registry = artifacts.require("Registry");
-const RegistryStorage = artifacts.require("RegistryStorage");
 const ZapToken = artifacts.require("ZapToken");
 const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
@@ -28,7 +22,7 @@ const Provider2 = artifacts.require("TestProvider");
 // const Subscriber = artifacts.require("Subscriber");
 
 const MPO = artifacts.require("MultiPartyOracle");
-const MPO1 = artifacts.require("MPO1");
+// const MPO2 = artifacts.require("MPO2");
 
 const MPOStorage = artifacts.require("MPOStorage");
 
@@ -110,19 +104,32 @@ contract('Dispatch', function (accounts) {
     }
 
     beforeEach(async function deployContracts() {
-        this.currentTest.regStor = await RegistryStorage.new();
-        this.currentTest.registry = await Registry.new(this.currentTest.regStor.address);
-        await this.currentTest.regStor.transferOwnership(this.currentTest.registry.address);
+        this.currentTest.zapdb = await ZapDB.new()
+        this.currentTest.zapcoord = await ZapCoord.new();
+        await this.currentTest.zapdb.transferOwnership(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.addImmutableContract('DATABASE', this.currentTest.zapdb.address);
+
         this.currentTest.token = await ZapToken.new();
+        await this.currentTest.zapcoord.addImmutableContract('ZAP_TOKEN', this.currentTest.token.address);
 
-        this.currentTest.cost = await Cost.new(this.currentTest.registry.address);
-        this.currentTest.bondStor = await BondageStorage.new();
-        this.currentTest.bondage = await Bondage.new(this.currentTest.bondStor.address, this.currentTest.token.address, this.currentTest.cost.address);
-        await this.currentTest.bondStor.transferOwnership(this.currentTest.bondage.address);
+        this.currentTest.registry = await Registry.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('REGISTRY', this.currentTest.registry.address);
 
-        this.currentTest.dispStor = await DispatchStorage.new();
-        this.currentTest.dispatch = await Dispatch.new(this.currentTest.dispStor.address, this.currentTest.bondage.address);
-        await this.currentTest.dispStor.transferOwnership(this.currentTest.dispatch.address);
+        this.currentTest.cost = await Cost.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('CURRENT_COST', this.currentTest.cost.address);
+
+        this.currentTest.bondage = await Bondage.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('BONDAGE', this.currentTest.bondage.address);
+
+        this.currentTest.dispatch = await Dispatch.new(this.currentTest.zapcoord.address);
+        await this.currentTest.zapcoord.updateContract('DISPATCH', this.currentTest.dispatch.address);
+
+        await this.currentTest.zapcoord.updateAllDependencies();
+
+        this.currentTest.MPOStorage = await MPOStorage.new();
+        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address);
+        await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
+
         this.currentTest.subscriber = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
         this.currentTest.subscriber2 = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
 
@@ -142,9 +149,7 @@ contract('Dispatch', function (accounts) {
 
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
-                [2,2,2],
-                [0,1000],
-                [1],
+                [2,2,2,1000],
                 {from: offchainOwner});
             await this.test.registry.initiateProvider(
                 23456,
@@ -155,9 +160,7 @@ contract('Dispatch', function (accounts) {
 
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
-                [2,2,2],
-                [0,1000],
-                [1],
+                [2,2,2,1000],
                 {from: offchainOwner2});
             await this.test.registry.initiateProvider(
                 23456,
@@ -168,9 +171,7 @@ contract('Dispatch', function (accounts) {
 
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
-                [2,2,2],
-                [0,1000],
-                [1],
+                [2,2,2,1000],
                 {from: offchainOwner3});
 
         this.test.MPOStorage = await MPOStorage.new();
