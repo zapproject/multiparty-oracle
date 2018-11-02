@@ -173,9 +173,6 @@ contract('Dispatch', function (accounts) {
         }
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
-                console.log(inclogs[i].args)
-                // Insert data handling here
-
                 await this.test.MPO.callback(inclogs[i].args.id,"Hello",
                   {from: inclogs[i].args.provider});   
                 }
@@ -186,7 +183,7 @@ contract('Dispatch', function (accounts) {
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         for(let i in sublogs){
             if(sublogs[i].event == "Result1"){
-                // console.log(sublogs[i])
+                
                 let result = sublogs[i].args["response1"]
                 // Insert data handling here
                 await expect(result).to.be.equal("Hello")

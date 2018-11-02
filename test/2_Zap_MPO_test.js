@@ -17,7 +17,7 @@ const ZapToken = artifacts.require("ZapToken");
 const Cost = artifacts.require("CurrentCost");
 const Subscriber = artifacts.require("TestClient");
 const Provider = artifacts.require("TestProvider");
-const Provider2 = artifacts.require("TestProvider");
+const Provider2 = artifacts.require("TestProvider2");
 
 // const Subscriber = artifacts.require("Subscriber");
 
@@ -207,32 +207,21 @@ contract('Dispatch', function (accounts) {
         let dislogs = await dispatchEvents.get();
 
         await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
-        console.log(dislogs);
-        for(let i in dislogs) console.log(dislogs[i].args["id"]);
+
+        // for(let i in dislogs) console.log(dislogs[i].args["id"]);
         await this.test.dispatch.respond1(dislogs[0].args["id"], "Hello World", {from: offchainOwner});
         await this.test.dispatch.respond1(dislogs[1].args["id"], "Hello World", {from: offchainOwner2});
         await this.test.dispatch.respond1(dislogs[2].args["id"], "Hello World", {from: offchainOwner3});
 
         let sublogs = await subscriberEvents.get();
-        console.log(sublogs)
+        // console.log(sublogs)
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         // var result = sublogs[0].args["response1"]
         for(let i in sublogs){
             if(sublogs[i].event == "Result1"){
                 // console.log(sublogs[i])
                 let result = sublogs[i].args["response1"]
-                // Insert data handling here
-                for(let i in sublogs){
-            if(sublogs[i].event == "Result1"){
-                // console.log(sublogs[i])
-                let result = sublogs[i].args["response1"]
-                // Insert data handling here
-                await expect(result).to.be.equal("Hello World")
-                
-                }
-
-        }
-                
+                await expect(result).to.be.equal("Hello World");               
                 }
 
         }
@@ -290,7 +279,7 @@ contract('Dispatch', function (accounts) {
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
 
-        console.log(sublogs);
+        // console.log(sublogs);
 
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var result = sublogs[0].args["response1"]
@@ -359,7 +348,7 @@ contract('Dispatch', function (accounts) {
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
 
-        console.log(dislogs);
+        // console.log(dislogs);
 
         await expect(isEventReceived(dislogs, "OffchainResult1")).to.be.equal(true);
         // var result = dislogs[dislogs.length - 1].args["response1"]
@@ -440,8 +429,8 @@ contract('Dispatch', function (accounts) {
 
         await expect(isEventReceived(mpologs, "Result1")).to.be.equal(true);
 
-        console.log(sublogs);
-        console.log(sub2logs);
+        // console.log(sublogs);
+        // console.log(sub2logs);
 
         
         for(let i in sublogs){
@@ -587,7 +576,7 @@ contract('Dispatch', function (accounts) {
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
 
-        console.log(mpologs);
+        // console.log(mpologs);
 
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         
@@ -845,12 +834,12 @@ contract('Dispatch', function (accounts) {
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
 
-        console.log(mpologs);
+        // console.log(mpologs);
 
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
 
         var result = sublogs[0].args["response1"];
-        await expect(result).to.be.equal("tseT");
+        await expect(result).to.be.equal("esreveR");
 
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
@@ -951,7 +940,7 @@ contract('Dispatch', function (accounts) {
         let dislogs = await dispatchEvents.get();
 
         await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
-        console.log(dislogs);
+        // console.log(dislogs);
 
         await this.test.dispatch.respond1(dislogs[0].args["id"], "Hello World", {from: offchainOwner});
         await this.test.dispatch.respond1(dislogs[1].args["id"], "Goodbye World", {from: offchainOwner2});
@@ -962,14 +951,21 @@ contract('Dispatch', function (accounts) {
         await this.test.dispatch.respond1(dislogs[4].args["id"], "2marap", {from: offchainOwner2});
         await this.test.dispatch.respond1(dislogs[5].args["id"], "2marap", {from: offchainOwner3});
 
-        // console.log(sublogs);
+        
         let sublogs = await subscriberEvents.get();
-        console.log(sublogs)
+        
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var results = [];
-        results.push(sublogs[0].args["response1"]);
-        results.push(sublogs[1].args["response1"]);
+       
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                results.push(sublogs[i].args["response1"]);
+                
+                }
 
+        };
+        
         console.log(results);
         await expect(results).to.include( '2marap','Hello World');
 
@@ -999,7 +995,6 @@ contract('Dispatch', function (accounts) {
         await this.test.registry.initiateProvider(
             23456,
             "OffchainProvider2",
-            nullAddr,
             {from: offchainOwner2});
 
         await this.test.registry.initiateProviderCurve(
@@ -1010,7 +1005,6 @@ contract('Dispatch', function (accounts) {
         await this.test.registry.initiateProvider(
             23456,
             "OffchainProvider3",
-            nullAddr,
             {from: offchainOwner3});
 
         await this.test.registry.initiateProviderCurve(
@@ -1065,9 +1059,9 @@ contract('Dispatch', function (accounts) {
 
         await expect(isEventReceived(dislogs, "Incoming")).to.be.equal(true);
 
-        console.log(dislogs);
+        // console.log(dislogs);
         
-        for(let i in dislogs) console.log(dislogs[i].args["id"]);
+        // for(let i in dislogs) console.log(dislogs[i].args["id"]);
         await this.test.dispatch.respond1(dislogs[0].args["id"], "Hello World", {from: offchainOwner});
         
         await this.test.dispatch.respond1(dislogs[3].args["id"], "Hello World2", {from: offchainOwner})
@@ -1082,14 +1076,20 @@ contract('Dispatch', function (accounts) {
         let sublogs = await subscriberEvents.get();
         let sub2logs = await subscriber2Events.get();
         
-        console.log(sublogs)
-        console.log(sub2logs);
+        // console.log(sublogs)
+        // console.log(sub2logs);
 
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var results = [];
-        results.push(sublogs[0].args["response1"]);
-        results.push(sub2logs[0].args["response1"]);
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                results.push(sublogs[i].args["response1"]);
+                
+                }
 
+        };
+        
         console.log(results);
         await expect(results).to.include( 'Hello World','Hello World2');
 
@@ -1100,7 +1100,7 @@ contract('Dispatch', function (accounts) {
         subscriber2Events.stopWatching();
     });
 
-    it("MULTIPARTY ORACLE_13 - Will revert if the Multiparty Oracle queries offchain providers using the onchain providers call.", async function () {
+    it("MULTIPARTY ORACLE_13 - Will not emit response if the Multiparty Oracle queries offchain providers using the onchain providers call.", async function () {
         //suscribe Client to MPO
         await prepareTokens.call(this.test, subscriber);
         //await prepareTokens.call(this.test, subscriber2);
@@ -1125,7 +1125,6 @@ contract('Dispatch', function (accounts) {
         await this.test.registry.initiateProviderCurve(
             "Hello?",
             [2,2,2,1000],
-            nullAddr,
             nullAddr,
             {from: offchainOwner2});
 
@@ -1159,14 +1158,25 @@ contract('Dispatch', function (accounts) {
         await this.test.bondage.delegateBond(MPOAddr, offchainOwner2, "Hello?", 100, {from: provider});
         await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-        this.test.MPO.setParams([offchainOwner, offchainOwner2], 2);
+        this.test.MPO.setParams([offchainOwner, offchainOwner2,p3Addr], 2);
 
         let mpologs = await OracleEvents.get();
         let dislogs = await dispatchEvents.get();
-
+        let sublogs = await subscriberEvents.get();
+        this.test.subscriber.testQuery(MPOAddr, query, spec2, params)//).to.be.eventually.rejectedWith(EVMRevert);
+        console.log(mpologs)
         // //client queries MPO through dispatch
-        await expect(this.test.subscriber.testQuery(MPOAddr, query, spec2, params)).to.be.eventually.rejectedWith(EVMRevert);
-        
+        await expect(isEventReceived(sublogs, "Result1")).to.be.equal(false);
+        // for(let i in sublogs){
+        //     if(sublogs[i].event == "Result1"){
+        //         // console.log(sublogs[i])
+        //         let result = sublogs[i].args["response1"]
+        //         // Insert data handling here
+        //         await expect(result).to.be.equal("Hello World")
+                
+        //         }
+
+        // }
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();

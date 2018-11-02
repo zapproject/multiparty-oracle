@@ -88,12 +88,12 @@ contract MultiPartyOracle {
         else if(hash == keccak256(abi.encodePacked(spec2))) {
             stor.setQueryStatus(id,2);
             stor.setClientQueryId(id);
-            endpoint2(id, userQuery, endpointParams);
+            endpoint1(id, userQuery, endpointParams);
         }
         else if(hash == keccak256(abi.encodePacked(spec3))) {
             stor.setQueryStatus(id,1);
             stor.setClientQueryId(id);
-            endpoint3(id, userQuery, endpointParams);
+            endpoint2(id, userQuery, endpointParams);
         }
     }
 
@@ -106,7 +106,7 @@ contract MultiPartyOracle {
         stor.setResponders(_responders);
     }
 
-    //@Notice query offchain providers
+    //@Notice query Zap Registered providers
     // @param uint256 id Client query ID, passed to dispatch and stored in a mapping to dispatch generated MPO IDs
     // @param string userQuery passed to provider for use
     // @param bytes32[] endpointParams passed to provider for use
@@ -126,31 +126,11 @@ contract MultiPartyOracle {
         }
     }
 
-    // @notice query onchain providers
-    // @param uint256 unused
-    // @param string userQuery passed to provider for use
-    // @param bytes32[] endpointParams passed to provider for use
-    function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
-        //set queryStatus to 2
-        uint i;
-        if(keccak256(abi.encodePacked(userQuery)) == keccak256("Hello?")) {
-            for(i=0; i<stor.getNumResponders(); i++) {      
-                stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, "Hello?", endpointParams),
-                                id);
-            }
-        } else if(keccak256(abi.encodePacked(userQuery)) == keccak256("Reverse")) {
-            for(i=0; i<stor.getNumResponders(); i++) {      
-                stor.setClientQueryId(dispatch.query(stor.getResponderAddress(i), userQuery, "Reverse", endpointParams),
-                                id);
-            }
-        }
-    }
-
     // @notice query nonproviders(Offchain providers not registered through zap dispatch)
     // @param uint256 id Client query ID,used to generate MPO IDs and map to them
     // @param string userQuery passed to provider for use
     // @param bytes32[] endpointParams passed to provider for use
-    function endpoint3(uint256 id, string userQuery, bytes32[] endpointParams) internal{
+    function endpoint2(uint256 id, string userQuery, bytes32[] endpointParams) internal{
         uint256 mpoid;
         for(uint i=0; i<stor.getNumResponders(); i++) {      
             mpoid=uint256(keccak256(abi.encodePacked(
