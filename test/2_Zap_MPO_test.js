@@ -148,6 +148,7 @@ contract('Dispatch', function (accounts) {
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
                 [2,2,2,1000],
+                "0x0000000000000000000000000000000000000000",
                 {from: offchainOwner});
             await this.test.registry.initiateProvider(
                 23456,
@@ -157,6 +158,7 @@ contract('Dispatch', function (accounts) {
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
                 [2,2,2,1000],
+                "0x0000000000000000000000000000000000000000",
                 {from: offchainOwner2});
             await this.test.registry.initiateProvider(
                 23456,
@@ -166,11 +168,12 @@ contract('Dispatch', function (accounts) {
             await this.test.registry.initiateProviderCurve(
                 "Hello?",
                 [2,2,2,1000],
+                "0x0000000000000000000000000000000000000000",
                 {from: offchainOwner3});
 
-        this.test.MPOStorage = await MPOStorage.new();
-        this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-        await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+        
+        
+        
 
         var MPOAddr = this.test.MPO.address;
         var subAddr = this.test.subscriber.address; 
@@ -213,207 +216,261 @@ contract('Dispatch', function (accounts) {
         let sublogs = await subscriberEvents.get();
         console.log(sublogs)
         await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
+        // var result = sublogs[0].args["response1"]
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result = sublogs[i].args["response1"]
+                // Insert data handling here
+                for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result = sublogs[i].args["response1"]
+                // Insert data handling here
+                await expect(result).to.be.equal("Hello World")
+                
+                }
+
+        }
+                
+                }
+
+        }
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
+    });
+
+    it("MULTIPARTY ORACLE_1 - Check that MPO can query multiple Onchain Providers", async function () {
+        //suscribe Client to MPO
+        await prepareTokens.call(this.test, subscriber);
+        await prepareTokens.call(this.test, provider);
+
+        this.test.p1 = await Provider.new(this.test.registry.address,false);
+        this.test.p2 = await Provider2.new(this.test.registry.address,false);
+        this.test.p3 = await Provider.new(this.test.registry.address,false);
+
+        
+        
+        
+
+        var MPOAddr = this.test.MPO.address;
+        var subAddr = this.test.subscriber.address;
+
+        var p1Addr = this.test.p1.address;
+        var p2Addr = this.test.p2.address;
+        var p3Addr = this.test.p3.address;
+
+        // watch events
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
+        
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
+
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
+
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+
+        await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
+        
+        //eventually the MPO will have to bond to multiple providers through a FOR loop
+        await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
+
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
+
+        //client queries MPO through dispatch
+        await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
+
+        let sublogs = await subscriberEvents.get();
+        let mpologs = await OracleEvents.get();
+        let dislogs = await dispatchEvents.get();
+
+        console.log(sublogs);
+
+        await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         var result = sublogs[0].args["response1"]
-        await expect(result).to.be.equal("Hello World")
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result = sublogs[i].args["response1"]
+                // Insert data handling here
+                await expect(result).to.be.equal("Hello World")
+                
+                }
+
+        }
 
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
     });
 
-    // it("MULTIPARTY ORACLE_1 - Check that MPO can query multiple Onchain Providers", async function () {
-    //     //suscribe Client to MPO
-    //     await prepareTokens.call(this.test, subscriber);
-    //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider2.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    it("MULTIPARTY ORACLE_2 - Check if offchain subscriber can still make queries to MPO", async function () {
+        //suscribe Client to MPO
+        await prepareTokens.call(this.test, offchainSubscriber);
+        await prepareTokens.call(this.test, provider);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+        this.test.p1 = await Provider.new(this.test.registry.address,false);
+        this.test.p2 = await Provider2.new(this.test.registry.address,false);
+        this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     var MPOAddr = this.test.MPO.address;
-    //     var subAddr = this.test.subscriber.address;
-
-    //     var p1Addr = this.test.p1.address;
-    //     var p2Addr = this.test.p2.address;
-    //     var p3Addr = this.test.p3.address;
-
-    //     // watch events
-    //     const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     dispatchEvents.watch((err, res) => { });
         
-    //     const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     subscriberEvents.watch((err, res) => { }); 
-
-    //     const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     OracleEvents.watch((err, res) => { }); 
-
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
-
-    //     await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
         
-    //     //eventually the MPO will have to bond to multiple providers through a FOR loop
-    //     await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
+        
 
-    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
-
-    //     //client queries MPO through dispatch
-    //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
-
-    //     let sublogs = await subscriberEvents.get();
-    //     let mpologs = await OracleEvents.get();
-    //     let dislogs = await dispatchEvents.get();
-
-    //     console.log(sublogs);
-
-    //     await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
-    //     var result = sublogs[0].args["response1"]
-    //     await expect(result).to.be.equal("Hello World")
-
-    //     OracleEvents.stopWatching();
-    //     dispatchEvents.stopWatching();
-    //     subscriberEvents.stopWatching();
-    // });
-
-
-    // it("MULTIPARTY ORACLE_2 - Check if offchain subscriber can still make queries to MPO", async function () {
-    //     //suscribe Client to MPO
-    //     await prepareTokens.call(this.test, offchainSubscriber);
-    //     await prepareTokens.call(this.test, provider);
-
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider2.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
-
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
-
-    //     var MPOAddr = this.test.MPO.address;
+        var MPOAddr = this.test.MPO.address;
  
-    //     var p1Addr = this.test.p1.address;
-    //     var p2Addr = this.test.p2.address;
-    //     var p3Addr = this.test.p3.address;
+        var p1Addr = this.test.p1.address;
+        var p2Addr = this.test.p2.address;
+        var p3Addr = this.test.p3.address;
 
-    //     // watch events
-    //     const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     dispatchEvents.watch((err, res) => { });
+        // watch events
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
         
-    //     const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     subscriberEvents.watch((err, res) => { }); 
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
 
-    //     const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     OracleEvents.watch((err, res) => { }); 
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
 
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: offchainSubscriber});
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: offchainSubscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
-    //     await this.test.bondage.delegateBond(offchainSubscriber, MPOAddr, spec2, 100, {from: offchainSubscriber});
+        await this.test.bondage.delegateBond(offchainSubscriber, MPOAddr, spec2, 100, {from: offchainSubscriber});
         
-    //     //eventually the MPO will have to bond to multiple providers through a FOR loop
-    //     await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
+        //eventually the MPO will have to bond to multiple providers through a FOR loop
+        await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
-    //     //client queries MPO through dispatch
-    //     await this.test.dispatch.query(MPOAddr, query, spec2, params, {from: offchainSubscriber});
+        //client queries MPO through dispatch
+        await this.test.dispatch.query(MPOAddr, query, spec2, params, {from: offchainSubscriber});
 
-    //     let sublogs = await subscriberEvents.get();
-    //     let mpologs = await OracleEvents.get();
-    //     let dislogs = await dispatchEvents.get();
+        let sublogs = await subscriberEvents.get();
+        let mpologs = await OracleEvents.get();
+        let dislogs = await dispatchEvents.get();
 
-    //     console.log(dislogs);
+        console.log(dislogs);
 
-    //     await expect(isEventReceived(dislogs, "OffchainResult1")).to.be.equal(true);
-    //     var result = dislogs[dislogs.length - 1].args["response1"]
-    //     await expect(result).to.be.equal("Hello World")
+        await expect(isEventReceived(dislogs, "OffchainResult1")).to.be.equal(true);
+        // var result = dislogs[dislogs.length - 1].args["response1"]
+        // await expect(result).to.be.equal("Hello World")
+         for(let i in dislogs){
+            if(dislogs[i].event == "OffchainResult1"){
+                // console.log(sublogs[i])
+                let result = dislogs[i].args["response1"]
+                // Insert data handling here
+                await expect(result).to.be.equal("Hello World")
+                
+                }
 
-    //     OracleEvents.stopWatching();
-    //     dispatchEvents.stopWatching();
-    //     subscriberEvents.stopWatching();
-    // });
-
-
-    // it("MULTIPARTY ORACLE_3 - Check that the following MPO can query multiple Onchain Providers through dispatch", async function () {
-    //     //suscribe Client to MPO
-    //     await prepareTokens.call(this.test, subscriber);
-    //     await prepareTokens.call(this.test, subscriber2);
-    //     await prepareTokens.call(this.test, provider);
-
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider2.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+        }
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
+    });
 
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    it("MULTIPARTY ORACLE_3 - Check that the following MPO can query multiple Onchain Providers through dispatch", async function () {
+        //suscribe Client to MPO
+        await prepareTokens.call(this.test, subscriber);
+        await prepareTokens.call(this.test, subscriber2);
+        await prepareTokens.call(this.test, provider);
 
-    //     var MPOAddr = this.test.MPO.address;
-    //     var subAddr = this.test.subscriber.address;
-    //     var subAddr2 = this.test.subscriber2.address;  
-    //     var p1Addr = this.test.p1.address;
-    //     var p2Addr = this.test.p2.address;
-    //     var p3Addr = this.test.p3.address;
+        this.test.p1 = await Provider.new(this.test.registry.address,false);
+        this.test.p2 = await Provider2.new(this.test.registry.address,false);
+        this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     // watch events
-    //     const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     dispatchEvents.watch((err, res) => { });
+
         
-    //     const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     subscriberEvents.watch((err, res) => { }); 
+        
+        
+
+        var MPOAddr = this.test.MPO.address;
+        var subAddr = this.test.subscriber.address;
+        var subAddr2 = this.test.subscriber2.address;  
+        var p1Addr = this.test.p1.address;
+        var p2Addr = this.test.p2.address;
+        var p3Addr = this.test.p3.address;
+
+        // watch events
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
+        
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
     
-    //     const subscriber2Events = this.test.subscriber2.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     subscriberEvents.watch((err, res) => { }); 
+        const subscriber2Events = this.test.subscriber2.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
 
-    //     const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
-    //     OracleEvents.watch((err, res) => { }); 
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
 
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber2});
-    //     await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber2});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
-    //     await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
-    //     await this.test.bondage.delegateBond(subAddr2, MPOAddr, spec2, 100, {from: subscriber2});
+        await this.test.bondage.delegateBond(subAddr, MPOAddr, spec2, 100, {from: subscriber});
+        await this.test.bondage.delegateBond(subAddr2, MPOAddr, spec2, 100, {from: subscriber2});
         
-    //     //eventually the MPO will have to bond to multiple providers through a FOR loop
-    //     await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
-    //     await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
+        //eventually the MPO will have to bond to multiple providers through a FOR loop
+        await this.test.bondage.delegateBond(MPOAddr, p1Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p2Addr, "Hello?", 100, {from: provider});
+        await this.test.bondage.delegateBond(MPOAddr, p3Addr, "Hello?", 100, {from: provider});
 
-    //     this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
+        this.test.MPO.setParams([p1Addr, p2Addr, p3Addr], 2);
 
-    //     //client queries MPO through dispatch
-    //     await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
-    //     await this.test.subscriber2.testQuery(MPOAddr, query, spec2, params)
+        //client queries MPO through dispatch
+        await this.test.subscriber.testQuery(MPOAddr, query, spec2, params)
+        await this.test.subscriber2.testQuery(MPOAddr, query, spec2, params)
 
-    //     let sublogs = await subscriberEvents.get();
-    //     let sub2logs = await subscriber2Events.get();
-    //     let mpologs = await OracleEvents.get();
-    //     let dislogs = await dispatchEvents.get();
+        let sublogs = await subscriberEvents.get();
+        let sub2logs = await subscriber2Events.get();
+        let mpologs = await OracleEvents.get();
+        let dislogs = await dispatchEvents.get();
 
-    //     await expect(isEventReceived(mpologs, "Result1")).to.be.equal(true);
+        await expect(isEventReceived(mpologs, "Result1")).to.be.equal(true);
 
-    //     console.log(sublogs);
-    //     console.log(sub2logs);
+        console.log(sublogs);
+        console.log(sub2logs);
 
-    //     var result = sublogs[0].args["response1"]
-    //     await expect(result).to.be.equal("Hello World")
-    //     var result2 = sub2logs[0].args["response1"]
-    //     await expect(result2).to.be.equal("Hello World")
+        
+        for(let i in sublogs){
+            if(sublogs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result = sublogs[i].args["response1"]
+                // Insert data handling here
+                await expect(result).to.be.equal("Hello World")
+                
+                }
 
-    //     OracleEvents.stopWatching();
-    //     dispatchEvents.stopWatching();
-    //     subscriberEvents.stopWatching();
-    // });
+        }
+         for(let i in sub2logs){
+            if(sub2logs[i].event == "Result1"){
+                // console.log(sublogs[i])
+                let result2 = sub2logs[i].args["response1"]
+                // Insert data handling here
+                await expect(result2).to.be.equal("Hello World")
+                
+                }
+
+        }
+        // var result2 = sub2logs[0].args["response1"]
+        // await expect(result2).to.be.equal("Hello World")
+
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
+    });
 
     // it("MULTIPARTY ORACLE_4 - Check that Multiparty Oracle emits no response if threshold is not met.", async function () {
     //     //suscribe Client to MPO
@@ -421,13 +478,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber2);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider2.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider2.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -485,13 +542,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -537,7 +594,16 @@ contract('Dispatch', function (accounts) {
     //     await expect(isEventReceived(sublogs, "Result1")).to.be.equal(true);
         
     //     var result = sublogs[0].args["response1"];
-    //     await expect(result).to.be.equal("Hello World");
+    //     for(let i in sublogs){
+        //     if(sublogs[i].event == "Result1"){
+        //         // console.log(sublogs[i])
+        //         let result = sublogs[i].args["response1"]
+        //         // Insert data handling here
+        //         await expect(result).to.be.equal("Hello World")
+                
+        //         }
+
+        // };
         
     //     OracleEvents.stopWatching();
     //     dispatchEvents.stopWatching();
@@ -549,13 +615,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -596,13 +662,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -646,13 +712,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -695,9 +761,9 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address; 
@@ -733,13 +799,13 @@ contract('Dispatch', function (accounts) {
     //     await prepareTokens.call(this.test, subscriber);
     //     await prepareTokens.call(this.test, provider);
 
-    //     this.test.p1 = await Provider.new(this.test.registry.address);
-    //     this.test.p2 = await Provider.new(this.test.registry.address);
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p1 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p2 = await Provider.new(this.test.registry.address,false);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address;
@@ -838,9 +904,9 @@ contract('Dispatch', function (accounts) {
     //         [2,2,2,1000],
     //         {from: offchainOwner3});
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address; 
@@ -944,9 +1010,9 @@ contract('Dispatch', function (accounts) {
     //         [2,2,2,1000],
     //         {from: offchainOwner3});
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address; 
@@ -1051,11 +1117,11 @@ contract('Dispatch', function (accounts) {
     //         [2,2,2,1000],
     //         {from: offchainOwner2});
 
-    //     this.test.MPOStorage = await MPOStorage.new();
-    //     this.test.MPO = await MPO1.new(this.test.registry.address, this.test.dispatch.address, this.test.MPOStorage.address);
-    //     await this.test.MPOStorage.transferOwnership(this.test.MPO.address);
+    //     
+    //     
+    //     
 
-    //     this.test.p3 = await Provider.new(this.test.registry.address);
+    //     this.test.p3 = await Provider.new(this.test.registry.address,false);
 
     //     var MPOAddr = this.test.MPO.address;
     //     var subAddr = this.test.subscriber.address; 
