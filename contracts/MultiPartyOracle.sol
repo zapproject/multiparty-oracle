@@ -194,7 +194,7 @@ contract MultiPartyOracle {
             int delta = int(stor.getDelta());
             // populate with values from response array such that median-delta<response<median+delta
             for(uint i=0; i<stor.getIntResponses(queryId).length; i++){
-                if(median - delta < response && response < median + delta){
+                if(median - delta < stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] < median + delta){
                     consensus[c]=response;
                     c--;
                     if(c<=0){break;}
