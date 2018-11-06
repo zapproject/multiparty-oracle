@@ -11,10 +11,13 @@ contract MPOStorage is Ownable{
 	mapping(uint256 => uint256) queryStatus;
 	// Tally of each response.
 	mapping(uint256 => mapping(string => uint256) ) responseTally; 
+	mapping(uint256 => int[]) responseIntArr; 
+	mapping(uint256 => int) average;
 	// Make sure each party can only submit one response
 	mapping(uint256 => mapping(address => bool)) oneAddressResponse; 
 	mapping(uint256 => uint256) mpoToClientId;
 	
+	uint256 delta; 
 	uint256 threshold;
 	address[] responders;
 
@@ -51,6 +54,13 @@ contract MPOStorage is Ownable{
 	function addResponse(uint256 queryId, string response, address party) external onlyOwner {
 		responseTally[queryId][response]++;
 		oneAddressResponse[queryId][party] = true;
+	}
+	function addIntResponse(uint256 queryId, int response, address party) external onlyOwner {
+		responseIntArr[queryId].push(response);
+		oneAddressResponse[queryId][party] = true;
+	}
+	function setDelta(uint256 _delta) external{
+		delta = _delta;
 	}
 
 	// Get Methods / Accessors
@@ -89,4 +99,44 @@ contract MPOStorage is Ownable{
 	function getResponderAddress(uint index) external view returns(address){
 		return responders[index];
 	}
+	function getIntResponses(uint256 queryId) external view returns(int[]){
+		return responseIntArr[queryId];
+	}
+	function getDelta() external view returns(uint256){
+		return delta;
+	}
+	function getMedian(uint256 queryId)external returns(int){
+		quickSort(responseIntArr[queryId],0, responseIntArr[queryId].length-1);
+		return responseIntArr[queryId][(responseIntArr[queryId].length - 1)/2];
+	}
+	function getAverage(uint256 queryId) external view returns(int[]){
+		require(responseIntArr[queryId].length!=0, "Division error");
+		int total = 0;
+		for (uint i =0; i<responseIntArr[queryId].length;i++){
+			total+=responseIntArr[queryId][i];
+		}
+		require(total>int(responseIntArr[queryId][0]), "Overflow error");
+		int[] memory avg = new int[](1);
+		avg[0]=total / int(responseIntArr[queryId].length);
+		return avg;
+	}
+	function quickSort(int[] storage arr, uint left, uint right) internal {
+        uint i = left;
+        uint j = right;
+        int pivot = arr[left + (right - left) / 2];
+        while (i <= j) {
+            while (arr[i] < pivot) i++;
+            while (pivot < arr[j]) j--;
+            if (i <= j) {
+                (arr[i], arr[j]) = (arr[j], arr[i]);
+                i++;
+                j--;
+            }
+        }
+        if (left < j)
+            quickSort(arr, left, j);
+        if (i < right)
+            quickSort(arr, i, right);
+    }
+
 }

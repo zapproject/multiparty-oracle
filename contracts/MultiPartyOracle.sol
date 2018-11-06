@@ -149,28 +149,62 @@ contract MultiPartyOracle {
     function callback(uint256 queryId, string response) external {
         require(msg.sender == dispatchAddress||
         (stor.getAddressStatus(msg.sender) &&
-        !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)));
+        !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)), "Invalid Sender/Response sent twice");
         
         if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
-            stor.addResponse(stor.getClientQueryId(queryId), response, msg.sender);
-            emit ReceivedResponse(stor.getClientQueryId(queryId), msg.sender, response);
-            if(stor.getTally(stor.getClientQueryId(queryId), response) >= stor.getThreshold()) {
-                stor.setQueryStatus(stor.getClientQueryId(queryId), 3);
-                emit Result1(stor.getClientQueryId(queryId), response);
-                dispatch.respond1(stor.getClientQueryId(queryId), response);
-            }
+            strResponse(stor.getClientQueryId(queryId), response, msg.sender);
         }
         else if(stor.getQueryStatus(stor.getClientQueryId()) == 2){
-            stor.addResponse(stor.getClientQueryId(), response, msg.sender);
-            emit ReceivedResponse(stor.getClientQueryId(), msg.sender, response);
-            if(stor.getTally(stor.getClientQueryId(), response) >= stor.getThreshold()) {
-                stor.setQueryStatus(stor.getClientQueryId(), 3);
-                emit Result1(stor.getClientQueryId(), response);
-                dispatch.respond1(stor.getClientQueryId(), response);
-            }
-
+            strResponse(stor.getClientQueryId(), response, msg.sender);
         }
 
+    }
+    function strResponse(uint256 queryId, string response, address sender) internal {
+        stor.addResponse(queryId, response, sender);
+        emit ReceivedResponse(queryId, sender, response);
+        if(stor.getTally(queryId, response) >= stor.getThreshold()) {
+            stor.setQueryStatus(queryId, 3);
+            emit Result1(queryId, response);
+            dispatch.respond1(queryId, response);
+        }
+    }
+    function callback(uint256 queryId, int[] responses) external {
+        require(msg.sender == dispatchAddress||
+        (stor.getAddressStatus(msg.sender) &&
+        !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender)),"Invalid Sender/Response sent twice");
+
+        int response = responses[0];
+        if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
+            intResponse(stor.getClientQueryId(queryId), response, msg.sender);
+        }
+        else if(stor.getQueryStatus(stor.getClientQueryId()) == 2){
+            intResponse(stor.getClientQueryId(), response, msg.sender);
+        }
+
+    }
+    function intResponse(uint256 queryId, int response, address sender) internal{
+        // int[] response.push(response)
+        stor.addIntResponse(queryId, response, sender);
+        // find median when all responders answer
+        if(stor.getIntResponses(queryId).length==stor.getNumResponders()){
+            int median = stor.getMedian(queryId);
+            // make new int array
+            uint256 c =stor.getThreshold();
+            int[] memory consensus = new int[](c);
+            int delta = int(stor.getDelta());
+            // populate with values from response array such that median-delta<response<median+delta
+            for(uint i=0; i<stor.getIntResponses(queryId).length; i++){
+                if(median - delta < response && response < median + delta){
+                    consensus[c]=response;
+                    c--;
+                    if(c<=0){break;}
+                }
+            }
+            if (consensus.length>=stor.getThreshold()){
+                dispatch.respondIntArray(queryId, stor.getAverage(queryId));
+            }
+            // return average of consensus array if threshold is met
+        }
     }
     
 
