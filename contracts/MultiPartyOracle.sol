@@ -198,7 +198,6 @@ contract MultiPartyOracle {
             for(uint i=0; i<stor.getIntResponses(queryId).length; i++){
                 if(median - delta <= stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] <= median + delta){
                     consensus[c]=stor.getIntResponses(queryId)[i];
-                    emit number("consensus",consensus[c]);
                     c--;
                     if(c<0){break;}
                 }
