@@ -132,7 +132,7 @@ contract('Dispatch', function (accounts) {
         this.currentTest.subscriber2 = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
     });
 
-    it("MultiPartyOracle_0 - Check that MPO can emit an incoming event.", async function() {
+    it("MultiPartyOracle_0 - Check that MPO can handle Int responses.", async function() {
         await prepareTokens.call(this.test, subscriber);
         await prepareTokens.call(this.test, provider);     
 
@@ -174,13 +174,13 @@ contract('Dispatch', function (accounts) {
         var tmp=[6400,6500,7000]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
-                console.log(5*(parseInt(i)+1))
+                
                 await this.test.MPO.callback(inclogs[i].args.id,[tmp[i]],
                   {from: inclogs[i].args.provider});   
                 }
 
         }
-        // console.log(sublogs)
+        
         let sublogs = await subscriberEvents.get();
         await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(true);
         for(let i in sublogs){
@@ -194,9 +194,76 @@ contract('Dispatch', function (accounts) {
                 }
 
         }
-        // await expect(result).to.be.equal("Hello")
-        // result = sublogs[0].args["response2"]
-        // await expect(result).to.be.equal("World")
+        
+        OracleEvents.stopWatching();
+        dispatchEvents.stopWatching();
+        subscriberEvents.stopWatching();
+
+    });
+
+it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", async function() {
+        await prepareTokens.call(this.test, subscriber);
+        await prepareTokens.call(this.test, provider);     
+
+        var MPOAddr = this.test.MPO.address;
+        var subAddr = this.test.subscriber.address; 
+
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
+        
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
+
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
+        
+        const incomingEvents = this.test.MPO.Incoming({ fromBlock: 0, toBlock: 'latest' });
+        incomingEvents.watch((err, res) => { }); 
+        
+
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+
+        await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
+    
+        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
+
+        await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
+
+        let mpologs = await OracleEvents.get();
+        let dislogs = await dispatchEvents.get();
+        let inclogs = await incomingEvents.get();
+
+        await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
+        // console.log(inclogs);
+
+        function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
+            return "Hello World"
+        }
+        var tmp=[6400,6500,7000]
+        for(let i in inclogs){
+            if(accounts.includes(inclogs[i].args.provider)){
+                
+                await this.test.MPO.callback(inclogs[i].args.id,[tmp[i]],
+                  {from: inclogs[i].args.provider});   
+                }
+
+        }
+        
+        let sublogs = await subscriberEvents.get();
+        await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
+        for(let i in sublogs){
+            if(sublogs[i].event == "ResultInt"){
+                
+                let result = sublogs[i].args["responses"][0]
+                console.log(result)
+                // Insert data handling here
+                await expect(String(result)).to.be.equal(String(6450))
+                
+                }
+
+        }
+        
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
         subscriberEvents.stopWatching();
