@@ -258,7 +258,7 @@ contract TestClient is Client1, Client2{
 	event Result1(uint256 id, string response1);
     event Result1(uint256 id, bytes32 response1);
     event Result2(uint256 id, string response1, string response2);
-
+    event ResultInt(uint256 id, int[] responses);
 	ERC20 token;
 	DispatchInterface dispatch;
 	BondageInterface bondage;
@@ -291,7 +291,9 @@ contract TestClient is Client1, Client2{
         emit Result2(id, response1, response2);
         // do something with result
     }
-
+    function callback(uint256 id, int[] responses) external{
+        emit ResultInt(id, responses);
+    }
     function testQuery(address oracleAddr, string query, bytes32 specifier, bytes32[] params) external returns (uint256) {
     	uint256 id = dispatch.query(oracleAddr, query, specifier, params);
         emit MadeQuery(oracleAddr, query, id);

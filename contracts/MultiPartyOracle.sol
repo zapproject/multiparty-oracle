@@ -77,7 +77,7 @@ contract MultiPartyOracle {
     function receive(uint256 id, string userQuery, bytes32 endpoint, bytes32[] endpointParams, bool onchainSubscriber) external {
         emit RecievedQuery(userQuery, endpoint, endpointParams, msg.sender);
         require(stor.getThreshold() > 0 && stor.getThreshold() <= stor.getNumResponders(), "Threshold not set/Invalid Threshold");    
-        require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0 );
+        require(msg.sender == dispatchAddress && stor.getQueryStatus(id) == 0, "Dispatch only");
 
         bytes32 hash = keccak256(abi.encodePacked(endpoint));
         if(hash == keccak256(abi.encodePacked(spec1))) {
@@ -191,13 +191,14 @@ contract MultiPartyOracle {
             // make new int array
             uint256 c =stor.getThreshold();
             int[] memory consensus = new int[](c);
+            c--;
             int delta = int(stor.getDelta());
             // populate with values from response array such that median-delta<response<median+delta
             for(uint i=0; i<stor.getIntResponses(queryId).length; i++){
                 if(median - delta < stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] < median + delta){
                     consensus[c]=response;
                     c--;
-                    if(c<=0){break;}
+                    if(c<0){break;}
                 }
             }
             if (consensus.length>=stor.getThreshold()){
