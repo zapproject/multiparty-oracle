@@ -109,15 +109,17 @@ contract MPOStorage is Ownable{
 		quickSort(responseIntArr[queryId],0, responseIntArr[queryId].length-1);
 		return responseIntArr[queryId][(responseIntArr[queryId].length - 1)/2];
 	}
-	function getAverage(uint256 queryId) external view returns(int[]){
-		require(responseIntArr[queryId].length!=0, "Division error");
+	function getAverage(int[] arr) external view returns(int[]){
+		require(arr.length!=0, "Division error");
 		int total = 0;
-		for (uint i =0; i<responseIntArr[queryId].length;i++){
-			total+=responseIntArr[queryId][i];
+		int length=0;
+		for (uint i =0; i<arr.length;i++){
+			if(arr[i]!=0){length++;}
+			total+=arr[i];
 		}
-		require(total>int(responseIntArr[queryId][0]), "Overflow error");
+		require(total>arr[0], "Overflow error");
 		int[] memory avg = new int[](1);
-		avg[0]=total / int(responseIntArr[queryId].length);
+		avg[0]=total / length;
 		return avg;
 	}
 	function quickSort(int[] storage arr, uint left, uint right) internal {

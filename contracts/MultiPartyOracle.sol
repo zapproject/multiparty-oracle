@@ -20,7 +20,7 @@ contract MultiPartyOracle {
         bytes32[] endpointParams,
         bool onchainSubscriber
     );
-
+    event number(string name, int value);
     event Result1(uint256 id, string response1);
 
     ZapInterface dispatch;
@@ -104,6 +104,7 @@ contract MultiPartyOracle {
         require(_threshold>0 && _threshold <= _responders.length, "Invalid Threshold Length");    
         stor.setThreshold(_threshold);
         stor.setResponders(_responders);
+        stor.setDelta(100);
     }
 
     //@Notice query Zap Registered providers
@@ -188,21 +189,27 @@ contract MultiPartyOracle {
         // find median when all responders answer
         if(stor.getIntResponses(queryId).length==stor.getNumResponders()){
             int median = stor.getMedian(queryId);
+            emit number("median",median);
             // make new int array
             uint256 c =stor.getThreshold();
             int[] memory consensus = new int[](c);
             c--;
             int delta = int(stor.getDelta());
+            emit number("delta",delta);
+            emit number("min", median-delta);
+            emit number("max", median+delta);
             // populate with values from response array such that median-delta<response<median+delta
             for(uint i=0; i<stor.getIntResponses(queryId).length; i++){
-                if(median - delta < stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] < median + delta){
-                    consensus[c]=response;
+                if(median - delta <= stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] <= median + delta){
+                    consensus[c]=stor.getIntResponses(queryId)[i];
+                    emit number("consensus",consensus[c]);
                     c--;
                     if(c<0){break;}
                 }
             }
-            if (consensus.length>=stor.getThreshold()){
-                dispatch.respondIntArray(queryId, stor.getAverage(queryId));
+              emit number("consensus",int(c));
+            if (int(c)<0){
+                dispatch.respondIntArray(queryId, stor.getAverage(consensus));
             }
             // return average of consensus array if threshold is met
         }

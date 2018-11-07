@@ -157,7 +157,7 @@ contract('Dispatch', function (accounts) {
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
     
-        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
+        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
 
@@ -171,10 +171,11 @@ contract('Dispatch', function (accounts) {
         function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
             return "Hello World"
         }
+        var tmp=[6400,6500,7000]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
-                console.log(i)
-                await this.test.MPO.callback(inclogs[i].args.id,[5*(i+1)],
+                console.log(5*(parseInt(i)+1))
+                await this.test.MPO.callback(inclogs[i].args.id,[tmp[i]],
                   {from: inclogs[i].args.provider});   
                 }
 
@@ -188,7 +189,7 @@ contract('Dispatch', function (accounts) {
                 let result = sublogs[i].args["responses"][0]
                 console.log(result)
                 // Insert data handling here
-                await expect(String(result)).to.be.equal(String(10))
+                await expect(String(result)).to.be.equal(String(6450))
                 
                 }
 
