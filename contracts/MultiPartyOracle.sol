@@ -199,7 +199,7 @@ contract MultiPartyOracle {
                 if(median - delta <= stor.getIntResponses(queryId)[i] && stor.getIntResponses(queryId)[i] <= median + delta){
                     consensus[c]=stor.getIntResponses(queryId)[i];
                     c--;
-                    if(c<0){break;}
+                    if(int(c)<0){break;}
                 }
             }
             if (int(c)<0){
