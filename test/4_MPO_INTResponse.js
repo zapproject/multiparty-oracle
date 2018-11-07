@@ -168,9 +168,7 @@ contract('Dispatch', function (accounts) {
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
 
-        function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
-            return "Hello World"
-        }
+        
         var tmp=[6400,6500,7000]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
@@ -237,9 +235,7 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
 
-        function dataHandle(queryString, endpoint, endpointParams, onchainSubscriber){
-            return "Hello World"
-        }
+        
         var tmp=[6400,6500,7000]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){

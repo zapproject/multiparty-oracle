@@ -202,10 +202,10 @@ contract MultiPartyOracle {
                     if(int(c)<0){break;}
                 }
             }
+            // return average of consensus array if threshold is met
             if (int(c)<0){
                 dispatch.respondIntArray(queryId, stor.getAverage(consensus));
             }
-            // return average of consensus array if threshold is met
         }
     }
     
