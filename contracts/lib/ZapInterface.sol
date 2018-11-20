@@ -3,11 +3,11 @@ pragma solidity ^0.4.24;
 contract ZapInterface{
     //event
     event Transfer(address indexed from, address indexed to, uint256 value);
+    //coordinator
+    function getContract(string contractName) public view returns (address); 
     //registry
     function initiateProvider(uint256, bytes32) public returns (bool);
     function initiateProviderCurve(bytes32, int256[], address) public returns (bool);
-    
-    function getContract(string contractName) public view returns (address); //coordinator
     //bondage
     function calcZapForDots(address, bytes32, uint256) external view returns (uint256); 
     function delegateBond(address holderAddress, address oracleAddress, bytes32 endpoint, uint256 numDots) external returns (uint256 boundZap); 

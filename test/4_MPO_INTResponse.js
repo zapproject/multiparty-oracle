@@ -248,17 +248,6 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         
         let sublogs = await subscriberEvents.get();
         await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
-        for(let i in sublogs){
-            if(sublogs[i].event == "ResultInt"){
-                
-                let result = sublogs[i].args["responses"][0]
-                console.log(result)
-                // Insert data handling here
-                await expect(String(result)).to.be.equal(String(6450))
-                
-                }
-
-        }
         
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();
