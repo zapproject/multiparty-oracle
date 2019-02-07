@@ -10,17 +10,19 @@ contract MPOStorage is Ownable{
 	// Threshold reached, do not accept any more responses
 	mapping(uint256 => uint256) queryStatus;
 	// Tally of each response.
-	mapping(uint256 => mapping(string => uint256) ) responseTally; 
+	mapping(uint256 => mapping(int => int) ) responseTally; 
 	mapping(uint256 => int[]) responseIntArr; 
 	mapping(uint256 => int) average;
 	// Make sure each party can only submit one response
 	mapping(uint256 => mapping(address => bool)) oneAddressResponse; 
 	mapping(uint256 => uint256) mpoToClientId;
 	
-	uint256 delta; 
+	mapping(uint256 => uint256) precision; 
+	mapping(uint256 => uint256) delta; 
+
 	uint256 threshold;
 	address[] responders;
-
+	uint256 responderLength = 5;
 	// implements Client1
 	address client;
 	uint256 clientQueryId; 
@@ -33,36 +35,37 @@ contract MPOStorage is Ownable{
 
 	
 
-	function setClientQueryId(uint256 _clientQueryId) external onlyOwner {
-		clientQueryId = _clientQueryId;
-	}
+	
 	function setClientQueryId(uint256 mpoId, uint256 _clientQueryId) external onlyOwner {
 		mpoToClientId[mpoId] = _clientQueryId;
 	}
  
 	function setResponders(address[] parties) external onlyOwner {
 		responders=parties;
-		for(uint256 i=0;i<parties.length;i++){
+		for(uint256 i=0; i <responderLength; i++){
 			approvedAddress[parties[i]]=true;
 		}
 	}
 
-	function setQueryStatus(uint queryId, uint status) external onlyOwner {
+	function setQueryStatus(uint queryId, uint256 status) external onlyOwner {
 		queryStatus[queryId]=status;
 	}
 
-	function addResponse(uint256 queryId, string response, address party) external onlyOwner {
+	function tallyResponse(uint256 queryId, int response) external onlyOwner {
 		responseTally[queryId][response]++;
-		oneAddressResponse[queryId][party] = true;
+
 	}
-	function addIntResponse(uint256 queryId, int response, address party) external onlyOwner {
+	function addIntResponse(uint256 queryId, int256 response, address party) external onlyOwner {
 		responseIntArr[queryId].push(response);
 		oneAddressResponse[queryId][party] = true;
 	}
-	function setDelta(uint256 _delta) external{
-		delta = _delta;
+	function setDelta(uint256 queryId, uint256 _delta) external{
+		delta[queryId] = _delta;
 	}
 
+	function setPrecision(uint256 queryId, uint256 _precision) external{
+		precision[queryId] = _precision;
+	}
 	// Get Methods / Accessors
 
 	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
@@ -77,13 +80,11 @@ contract MPOStorage is Ownable{
 		return threshold;
 	}
 	
-	function getTally(uint256 queryId, string response)external view returns(uint256){
+	function getTally(uint256 queryId, int256 response)external view returns(int256){
 		return responseTally[queryId][response];
 	}
 
-	function getClientQueryId() external view returns(uint256){
-		return clientQueryId;
-	}
+	
 	function getClientQueryId(uint256 mpoId) external view returns(uint256){
 		return mpoToClientId[mpoId];
 	}
@@ -93,7 +94,7 @@ contract MPOStorage is Ownable{
 	}
 
 	function getNumResponders() external view returns (uint) {
-		return responders.length;
+		return responderLength;
 	}
 
 	function getResponderAddress(uint index) external view returns(address){
@@ -102,13 +103,13 @@ contract MPOStorage is Ownable{
 	function getIntResponses(uint256 queryId) external view returns(int[]){
 		return responseIntArr[queryId];
 	}
-	function getDelta() external view returns(uint256){
-		return delta;
+	function getDelta(uint256 queryId) external view returns(uint256){
+		return delta[queryId];
 	}
-	function getMedian(uint256 queryId)external returns(int){
-		quickSort(responseIntArr[queryId],0, responseIntArr[queryId].length-1);
-		return responseIntArr[queryId][(responseIntArr[queryId].length - 1)/2];
+	function getPrecision(uint256 queryId) external view returns(uint256){
+		return precision[queryId];
 	}
+	
 	function getAverage(int[] arr) external view returns(int[]){
 		require(arr.length!=0, "Division error");
 		int total = 0;
@@ -122,23 +123,6 @@ contract MPOStorage is Ownable{
 		avg[0]=total / length;
 		return avg;
 	}
-	function quickSort(int[] storage arr, uint left, uint right) internal {
-        uint i = left;
-        uint j = right;
-        int pivot = arr[left + (right - left) / 2];
-        while (i <= j) {
-            while (arr[i] < pivot) i++;
-            while (pivot < arr[j]) j--;
-            if (i <= j) {
-                (arr[i], arr[j]) = (arr[j], arr[i]);
-                i++;
-                j--;
-            }
-        }
-        if (left < j)
-            quickSort(arr, left, j);
-        if (i < right)
-            quickSort(arr, i, right);
-    }
+	
 
 }
