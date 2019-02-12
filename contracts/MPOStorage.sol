@@ -20,7 +20,7 @@ contract MPOStorage is Ownable{
 	mapping(uint256 => uint256) precision; 
 	mapping(uint256 => uint256) delta; 
 
-	uint256 threshold;
+	mapping(uint256 => uint256) threshold;
 	address[] responders;
 	uint256 responderLength = 5;
 	// implements Client1
@@ -29,8 +29,8 @@ contract MPOStorage is Ownable{
 
 
 	// Set Methods / Mutators
-	function setThreshold(uint256 _threshold) external onlyOwner {
-		threshold = _threshold;
+	function setThreshold(uint queryId, uint256 _threshold) external onlyOwner {
+		threshold[queryId] = _threshold;
 	}
 
 	
@@ -40,10 +40,10 @@ contract MPOStorage is Ownable{
 		mpoToClientId[mpoId] = _clientQueryId;
 	}
  
-	function setResponders(address[] parties) external onlyOwner {
+	function setResponders(address[] parties) external  {
 		responders=parties;
 		for(uint256 i=0; i <responderLength; i++){
-			approvedAddress[parties[i]]=true;
+			approvedAddress[responders[i]]=true;
 		}
 	}
 
@@ -76,8 +76,8 @@ contract MPOStorage is Ownable{
         return approvedAddress[party];
     }
 	
-	function getThreshold() external view returns(uint) { 
-		return threshold;
+	function getThreshold(uint queryId) external view returns(uint) { 
+		return threshold[queryId];
 	}
 	
 	function getTally(uint256 queryId, int256 response)external view returns(int256){

@@ -72,13 +72,16 @@ contract('Dispatch', function (accounts) {
     const offchainOwner = accounts[3];
     const offchainOwner2 = accounts[4];
     const offchainOwner3 = accounts[5];
+    const offchainOwner4 = accounts[6];
+    const offchainOwner5 = accounts[7];
+    const owners = [offchainOwner,offchainOwner2,offchainOwner3,offchainOwner4,offchainOwner5]
 
     const tokensForOwner = new BigNumber("5000e18");
     const tokensForSubscriber = new BigNumber("3000e18");
     const tokensForProvider = new BigNumber("2000e18");
     const approveTokens = new BigNumber("1000e18");
 
-    const params = ["param1", "param2"];
+    const params = ["ETH", "BTC", 2,2,100];
 
     const spec1 = "Offchain";
     const spec2 = "Onchain";
@@ -125,7 +128,7 @@ contract('Dispatch', function (accounts) {
         await this.currentTest.zapcoord.updateAllDependencies();
 
         this.currentTest.MPOStorage = await MPOStorage.new();
-        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address);
+        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address, owners);
         await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
 
         this.currentTest.subscriber = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
@@ -156,8 +159,8 @@ contract('Dispatch', function (accounts) {
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-    
-        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 2);
+        // this.test.MPO.setup();
+        // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3,offchainOwner4,offchainOwner5], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
 
@@ -169,7 +172,7 @@ contract('Dispatch', function (accounts) {
         // console.log(inclogs);
 
         
-        var tmp=[6400,6500,7000]
+        var tmp=[910,915,920,935,950]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 
@@ -223,8 +226,8 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-    
-        this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
+        // this.test.MPO.setup();
+        // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
 
@@ -236,11 +239,11 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         // console.log(inclogs);
 
         
-        var tmp=[6400,6500,7000]
+        var tmp=[910,915,920,935,950]
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 
-                await this.test.MPO.callback(inclogs[i].args.id,[tmp[i]],
+                await this.test.MPO.callback(inclogs[i].args.id, [tmp[i]],
                   {from: inclogs[i].args.provider});   
                 }
 
