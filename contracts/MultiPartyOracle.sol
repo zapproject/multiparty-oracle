@@ -51,14 +51,16 @@ contract MultiPartyOracle {
         dispatch = ZapInterface(dispatchAddress);
         stor = MPOStorage(mpoStorageAddress);
         // parties = _responders;
-        stor.setResponders(_responders);
+        // stor.setResponders(_responders);
         // initialize in registry
         bytes32 title = "MultiPartyOracle";
         registry.initiateProvider(12345, title);
         registry.initiateProviderCurve(spec3, curve3, address(0));
 
     }
-    
+    function setup(address[] _responders) public{
+        stor.setResponders(_responders);
+    }
     function bytesToUint(bytes32 b) public returns (uint256){
         uint256 number;
         for(uint i=0;i<b.length;i++){
@@ -146,12 +148,12 @@ contract MultiPartyOracle {
         //         }
         //     }
         // stor.addIntResponse(queryId, response, sender);
-        deltaTally(queryId,response,sender)
+        deltaTally(queryId,response,sender);
 
-        intarr = stor.getIntResponses(queryId);
+        int[] memory intarr = stor.getIntResponses(queryId);
         if(intarr.length==stor.getNumResponders()){
             int[] storage responseArr;
-            for(i=0; i<intarr.length; i++){
+            for(uint i=0; i<intarr.length; i++){
                 if(stor.getTally(queryId, intarr[i]) >= int(stor.getThreshold(queryId))) {
                     responseArr.push(intarr[i]);
                 }

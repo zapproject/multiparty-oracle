@@ -40,7 +40,7 @@ contract MPOStorage is Ownable{
 		mpoToClientId[mpoId] = _clientQueryId;
 	}
  
-	function setResponders(address[] parties) external  {
+	function setResponders(address[] parties) external  onlyOwner{
 		responders=parties;
 		for(uint256 i=0; i <responderLength; i++){
 			approvedAddress[responders[i]]=true;

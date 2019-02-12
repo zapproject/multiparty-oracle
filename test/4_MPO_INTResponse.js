@@ -159,7 +159,7 @@ contract('Dispatch', function (accounts) {
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-        // this.test.MPO.setup();
+        this.test.MPO.setup(owners);
         // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3,offchainOwner4,offchainOwner5], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
@@ -226,7 +226,7 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-        // this.test.MPO.setup();
+        this.test.MPO.setup(owners);
         // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
