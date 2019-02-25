@@ -4,6 +4,7 @@ const expect = require('chai')
     .use(require('chai-as-promised'))
     .use(require('chai-bignumber')(BigNumber))
     .expect;
+var EthUtil = require('ethereumjs-util');
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
@@ -74,6 +75,7 @@ contract('Dispatch', function (accounts) {
     const offchainOwner3 = accounts[5];
     const offchainOwner4 = accounts[6];
     const offchainOwner5 = accounts[7];
+    const aggregator = accounts[8];
     const owners = [offchainOwner,offchainOwner2,offchainOwner3,offchainOwner4,offchainOwner5]
 
     const tokensForOwner = new BigNumber("5000e18");
@@ -103,7 +105,6 @@ contract('Dispatch', function (accounts) {
         await this.token.allocate(owner, tokensForOwner, { from: owner });
         await this.token.allocate(allocAddress, tokensForSubscriber, { from: owner });
     }
-
     beforeEach(async function deployContracts() {
         this.currentTest.zapdb = await ZapDB.new()
         this.currentTest.zapcoord = await ZapCoord.new();
@@ -128,12 +129,13 @@ contract('Dispatch', function (accounts) {
         await this.currentTest.zapcoord.updateAllDependencies();
 
         this.currentTest.MPOStorage = await MPOStorage.new();
-        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address, owners);
+        this.currentTest.MPO = await MPO.new(this.currentTest.zapcoord.address, this.currentTest.MPOStorage.address, aggregator);
         await this.currentTest.MPOStorage.transferOwnership(this.currentTest.MPO.address);
-
+        await this.currentTest.MPO.setup(owners);
         this.currentTest.subscriber = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
         this.currentTest.subscriber2 = await Subscriber.new(this.currentTest.token.address, this.currentTest.dispatch.address, this.currentTest.bondage.address, this.currentTest.registry.address);
     });
+        
 
     it("MultiPartyOracle_0 - Check that MPO can handle Int responses.", async function() {
         await prepareTokens.call(this.test, subscriber);
@@ -159,7 +161,7 @@ contract('Dispatch', function (accounts) {
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-        this.test.MPO.setup(owners);
+        
         // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3,offchainOwner4,offchainOwner5], 2);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
@@ -170,19 +172,60 @@ contract('Dispatch', function (accounts) {
 
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
+        // -m 'help maple me bake pudding cream honey rich smooth crumble sweet treat'
 
-        
-        var tmp=[910,915,920,935,950]
+        var answers=[910,915,920,935,950]
+        var privkeys = [
+        "39380cb7fd9efffaeeb29d6721491737bd2aa120d14e1e00aa1bafdacec63cb0",
+        "8f984e1b478a16603aa44ba3841ecae124bfd6c473f24097ac3d363521e2d4e3",
+        "4d723305911d736cf48e16a907c476949406ee3c652cc0aaa27ba69579f25891",
+        "bd23cefc5d9abea6481942d83bfae81d05acc6d101bc157b22c8de839cdc65ff",
+        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
+        "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
+        var hash = [];
+        var sigv = [];
+        var sigr = [];
+        var sigs = [];
+
+        // const messageToSign = "hello world";
+        // const privateKey = "43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46";
+        for(var i=0;i<5;i++){
+                var msgHash = EthUtil.hashPersonalMessage(new Buffer(answers[i]));
+                var signature = EthUtil.ecsign(msgHash, new Buffer(privkeys[i], 'hex')); 
+                // console.log(signature)
+
+                var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
+                hash.push('0x'+msgHash.toString('hex'));
+                sigv.push(parseInt(signature.v.toString(10)))
+                sigr.push('0x'+signature.r.toString('hex'))
+                sigs.push('0x'+signature.s.toString('hex'))
+                // console.log(signatureRPC);
+
+
+
+                var pubKey = EthUtil.ecrecover(msgHash,signature.v, signature.r, signature.s)
+                var sender = EthUtil.publicToAddress(pubKey)
+                var addr = EthUtil.bufferToHex(sender)
+
+                console.log(addr)
+        }
+        console.log(sigv,sigr,sigs)
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
-                
-                await this.test.MPO.callback(inclogs[i].args.id,[tmp[i]],
-                  {from: inclogs[i].args.provider});   
+                await this.test.MPO.callback(
+                    inclogs[i].args.id,
+                    answers,
+                    hash,
+                    sigv,
+                    sigr,
+                    sigs,
+                  {from: aggregator}); 
+                  break;  
                 }
-
         }
-        
+            
         let sublogs = await subscriberEvents.get();
+        console.log(sublogs)
         await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(true);
         for(let i in sublogs){
             if(sublogs[i].event == "ResultInt"){
@@ -190,7 +233,7 @@ contract('Dispatch', function (accounts) {
                 let result = sublogs[i].args["responses"][0]
                 console.log(result)
                 // Insert data handling here
-                await expect(String(result)).to.be.equal(String(6450))
+                // await expect(String(result)).to.be.equal(String(6450))
                 
                 }
 
@@ -226,7 +269,7 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
 
         await this.test.bondage.delegateBond(subAddr, MPOAddr, "Nonproviders", 100, {from: subscriber});       
-        this.test.MPO.setup(owners);
+        
         // this.test.MPO.setParams([offchainOwner, offchainOwner2, offchainOwner3], 3);
 
         await this.test.subscriber.testQuery(MPOAddr, query, "Nonproviders", params)       
@@ -235,22 +278,59 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         let dislogs = await dispatchEvents.get();
         let inclogs = await incomingEvents.get();
 
-        await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
+        // await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
 
         
-        var tmp=[910,915,920,935,950]
+        var answers=[910,915,920,935,950]
+        var privkeys = [
+        "39380cb7fd9efffaeeb29d6721491737bd2aa120d14e1e00aa1bafdacec63cb0",
+        "8f984e1b478a16603aa44ba3841ecae124bfd6c473f24097ac3d363521e2d4e3",
+        "4d723305911d736cf48e16a907c476949406ee3c652cc0aaa27ba69579f25891",
+        "bd23cefc5d9abea6481942d83bfae81d05acc6d101bc157b22c8de839cdc65ff",
+        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
+        "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
+        var sigv = [];
+        var sigr = [];
+        var sigs = [];
+
+        // const messageToSign = "hello world";
+        // const privateKey = "43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46";
+        for(var i=0;i<5;i++){
+                var msgHash = EthUtil.hashPersonalMessage(new Buffer(answers[i]));
+                var signature = EthUtil.ecsign(msgHash, new Buffer(privkeys[i], 'hex')); 
+                // console.log(signature)
+
+                var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
+                sigv.push(parseInt(signature.v.toString(10)))
+                sigr.push(signature.r.toString('hex'))
+                sigs.push(signature.s.toString('hex'))
+                // console.log(signatureRPC);
+
+
+
+                var pubKey = EthUtil.ecrecover(msgHash,signature.v, signature.r, signature.s)
+                var sender = EthUtil.publicToAddress(pubKey)
+                var addr = EthUtil.bufferToHex(sender)
+
+                // console.log(sender)
+        }
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
-                
-                await this.test.MPO.callback(inclogs[i].args.id, [tmp[i]],
-                  {from: inclogs[i].args.provider});   
+                await this.test.MPO.callback(
+                    inclogs[i].args.id,
+                    answers,
+                    sigv,
+                    sigr,
+                    sigs,
+                  {from: aggregator}); 
+                  break;  
                 }
-
         }
+            
         
         let sublogs = await subscriberEvents.get();
-        await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
+        // await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
         
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();

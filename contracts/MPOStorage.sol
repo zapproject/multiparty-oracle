@@ -10,9 +10,10 @@ contract MPOStorage is Ownable{
 	// Threshold reached, do not accept any more responses
 	mapping(uint256 => uint256) queryStatus;
 	// Tally of each response.
-	mapping(uint256 => mapping(int => int) ) responseTally; 
-	mapping(uint256 => int[]) responseIntArr; 
-	mapping(uint256 => int) average;
+	mapping(uint256 => mapping(uint256 => uint256) ) responseTally; 
+	mapping(uint256 => uint256[]) responseArr; 
+	mapping(uint256 => uint256[]) thresholdArr;
+	mapping(uint256 => uint256) average;
 	// Make sure each party can only submit one response
 	mapping(uint256 => mapping(address => bool)) oneAddressResponse; 
 	mapping(uint256 => uint256) mpoToClientId;
@@ -51,13 +52,16 @@ contract MPOStorage is Ownable{
 		queryStatus[queryId]=status;
 	}
 
-	function tallyResponse(uint256 queryId, int response) external onlyOwner {
+	function tallyResponse(uint256 queryId, uint response) external onlyOwner {
 		responseTally[queryId][response]++;
 
 	}
-	function addIntResponse(uint256 queryId, int256 response, address party) external onlyOwner {
-		responseIntArr[queryId].push(response);
+	function addResponse(uint256 queryId, uint256 response, address party) external onlyOwner {
+		responseArr[queryId].push(response);
 		oneAddressResponse[queryId][party] = true;
+	}
+	function addThresholdResponse(uint256 queryId, uint256 response) external onlyOwner {
+		thresholdArr[queryId].push(response);
 	}
 	function setDelta(uint256 queryId, uint256 _delta) external{
 		delta[queryId] = _delta;
@@ -80,7 +84,7 @@ contract MPOStorage is Ownable{
 		return threshold[queryId];
 	}
 	
-	function getTally(uint256 queryId, int256 response)external view returns(int256){
+	function getTally(uint256 queryId, uint256 response)external view returns(uint256){
 		return responseTally[queryId][response];
 	}
 
@@ -92,6 +96,9 @@ contract MPOStorage is Ownable{
 	function getQueryStatus(uint256 queryId) external view returns(uint256){
 		return queryStatus[queryId];
 	}
+	function getThresholdResponses(uint256 queryId) external view returns(uint256[]){
+		return thresholdArr[queryId];
+	}
 
 	function getNumResponders() external view returns (uint) {
 		return responderLength;
@@ -100,8 +107,8 @@ contract MPOStorage is Ownable{
 	function getResponderAddress(uint index) external view returns(address){
 		return responders[index];
 	}
-	function getIntResponses(uint256 queryId) external view returns(int[]){
-		return responseIntArr[queryId];
+	function getResponses(uint256 queryId) external view returns(uint256[]){
+		return responseArr[queryId];
 	}
 	function getDelta(uint256 queryId) external view returns(uint256){
 		return delta[queryId];
@@ -110,17 +117,17 @@ contract MPOStorage is Ownable{
 		return precision[queryId];
 	}
 	
-	function getAverage(int[] arr) external view returns(int[]){
+	function getAverage(uint[] arr) external view returns(int[]){
 		require(arr.length!=0, "Division error");
-		int total = 0;
-		int length=0;
+		uint total = 0;
+		uint len=0;
 		for (uint i =0; i<arr.length;i++){
-			if(arr[i]!=0){length++;}
+			if(arr[i]!=0){len++;}
 			total+=arr[i];
 		}
 		require(total>arr[0], "Overflow error");
 		int[] memory avg = new int[](1);
-		avg[0]=total / length;
+		avg[0]=int(total) / int(len);
 		return avg;
 	}
 	

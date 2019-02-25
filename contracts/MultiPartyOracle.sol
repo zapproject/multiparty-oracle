@@ -32,7 +32,7 @@ contract MultiPartyOracle {
     address registryAddress;
     address public storageAddress;
 
-    address[] parties;
+    address aggregator;
     mapping(address => bool) approvedAddress; 
 
     bytes32 public spec3 = "Nonproviders";
@@ -43,13 +43,14 @@ contract MultiPartyOracle {
     // @param address _dispatchAddress
     // @param address mpoStorageAddress
     
-    constructor(address _zapCoord, address mpoStorageAddress, address[] _responders) public{
+    constructor(address _zapCoord, address mpoStorageAddress, address _aggregator) public{
         // require(_responders.length<=stor.getNumResponders(), "Soft Cap reached");
         registryAddress = ZapInterface(_zapCoord).getContract("REGISTRY");
         registry = ZapInterface(registryAddress);
         dispatchAddress = ZapInterface(_zapCoord).getContract("DISPATCH");
         dispatch = ZapInterface(dispatchAddress);
         stor = MPOStorage(mpoStorageAddress);
+        aggregator = _aggregator;
         // parties = _responders;
         // stor.setResponders(_responders);
         // initialize in registry
@@ -61,7 +62,7 @@ contract MultiPartyOracle {
     function setup(address[] _responders) public{
         stor.setResponders(_responders);
     }
-    function bytesToUint(bytes32 b) public returns (uint256){
+    function bytesToUint(bytes32 b) internal pure returns (uint256){
         uint256 number;
         for(uint i=0;i<b.length;i++){
             number = number + uint(b[i])*(2**(8*(b.length-(i+1))));
@@ -102,67 +103,67 @@ contract MultiPartyOracle {
             }
         }
     }
-    
+    function getSender(bytes32 hash, uint8 v, bytes32 r, bytes32 s) constant  internal returns(address) {
+
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
+        return ecrecover(hash, v, r, s) ;
+    }
+
+    function deltaTally(uint256 queryId, uint256 response) internal{
+        uint256 delta = stor.getDelta(queryId);
+        // Int Responses: Array of responses from whitelisted addresses
+        uint256[] memory intarr = stor.getResponses(queryId);
+        // For each  approved response, always 
+        for(uint256 i=0; i < intarr.length; i++){
+            if( response >= intarr[i] - delta && response <= intarr[i] + delta){
+                stor.tallyResponse(queryId,intarr[i]);
+                if(stor.getTally(queryId, intarr[i]) == stor.getThreshold(queryId)) {
+                    stor.addThresholdResponse(queryId, response);
+                }
+            }
+        }
+    }
 
     // @notice callback used by dispatch or nonproviders once a response has been created for the query
     // @param queryId MPO or dispatch generated MPOID to used to determine client query ID
     // @param response Response to be returned to client
     // @dev query status is 1 if receiving from offchain, 2 if from onchain.
-    function callback(uint256 queryId, int[] responses) external {
-        require(
-            stor.getAddressStatus(msg.sender) &&
-            !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender),
-            "Invalid Sender/Response sent twice");
+    function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigr, bytes32[] sigs) external {
+        require(msg.sender == aggregator, "Invalid aggregator");
+        // require(
+        //     stor.getAddressStatus(msg.sender) &&
+        //     !stor.onlyOneResponse(stor.getClientQueryId(queryId),msg.sender),
+        //     "Invalid Sender/Response sent twice");
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        uint256 queryId = stor.getClientQueryId(mpoId);
+        address sender;
+        for(uint i=0;i<stor.getNumResponders();i++){
+            sender = ecrecover( 
+                        msgHash[i],// keccak256(abi.encodePacked(prefix, responses[i])),
+                        sigv[i],
+                        sigr[i],
+                        sigs[i]);
+            emit ReceivedResponse(queryId, sender, "address after ecrecover");
+            emit Result1(responses[i], "test");
+            // If address is in whitelist
+            if( stor.getAddressStatus(sender) ){
+                    stor.addResponse(queryId, responses[i], sender);
+                    deltaTally(queryId, responses[i]);
+                }
+        }
 
-        int response = responses[0];
-        emit Result1(uint256(response),"responsecallback");
-        if(stor.getQueryStatus(stor.getClientQueryId(queryId)) == 1){
-            intResponse(stor.getClientQueryId(queryId), response, msg.sender);
+        // Query status 0 = not started, 1 = in progress, 2 = complete
+        if(stor.getQueryStatus(queryId) == 1) {
+            // If enough answers meet the threshold send back the average of the answers
+            if(stor.getThresholdResponses(queryId).length != 0){
+                stor.setQueryStatus(queryId, 2);
+                dispatch.respondIntArray(queryId, stor.getAverage(stor.getThresholdResponses(queryId)));
+            // dispatch.respondIntArray(queryId, responseArr);
+            }
         }
         
 
-    }
-    function deltaTally(uint256 queryId, int response, address sender){
-        int256 delta = int(stor.getDelta(queryId));
-        int[] memory intarr = stor.getIntResponses(queryId);
-        for(uint i=0; i < intarr.length; i++){
-                if( response >= intarr[i] - delta && 
-                    response <= intarr[i] + delta){
-                        emit Result1(uint256(response),"response");
-                        emit Result1(uint256(intarr[i]),"intarr[i]");
-                        stor.tallyResponse(queryId,intarr[i]);
-                }
-            }
-        stor.addIntResponse(queryId, response, sender);
-    }
-    function intResponse(uint256 queryId, int response, address sender) internal{
-        // int[] response.push(response)
-        // int256 delta = int(stor.getDelta(queryId));
-        // int[] memory intarr = stor.getIntResponses(queryId);
-        // for(uint i=0; i < intarr.length; i++){
-        //         if( response >= intarr[i] - delta && 
-        //             response <= intarr[i] + delta){
-        //                 emit Result1(uint256(response),"response");
-        //                 emit Result1(uint256(intarr[i]),"intarr[i]");
-        //                 stor.tallyResponse(queryId,intarr[i]);
-        //         }
-        //     }
-        // stor.addIntResponse(queryId, response, sender);
-        deltaTally(queryId,response,sender);
-
-        int[] memory intarr = stor.getIntResponses(queryId);
-        if(intarr.length==stor.getNumResponders()){
-            int[] storage responseArr;
-            for(uint i=0; i<intarr.length; i++){
-                if(stor.getTally(queryId, intarr[i]) >= int(stor.getThreshold(queryId))) {
-                    responseArr.push(intarr[i]);
-                }
-            }
-            
-            stor.setQueryStatus(queryId, 2);
-            dispatch.respondIntArray(queryId, stor.getAverage(responseArr));
-            // dispatch.respondIntArray(queryId, responseArr);
-        }
     }
 
   }
