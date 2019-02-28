@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 import "./MPOStorage.sol";
 import "./lib/Destructible.sol";
 import "./lib/ZapInterface.sol";
-
+// import "./ECRecovery.sol";
 // @title - A MultiPartyOracle contract that implements the client1 callback
 // @authors - Max Inciong, Jonathan Pang, Jon Morales
 // @notice the contract receives queries from dispatch and queries multiple providers to resolve the query
@@ -86,7 +86,9 @@ contract MultiPartyOracle {
         // require(threshold>0 && threshold <= parties.length,"Invalid Threshold Length");
         stor.setThreshold(id, bytesToUint(endpointParams[2]) );
         stor.setPrecision(id, bytesToUint(endpointParams[3]) );
-        stor.setDelta(id, uint256(endpointParams[4]) );
+        stor.setDelta(id, bytesToUint(endpointParams[4]) );
+        emit Result1(stor.getThreshold(id), "threshold");
+        emit Result1(stor.getDelta(id), "delta");
         if(hash == keccak256(abi.encodePacked(spec3))) {
             stor.setQueryStatus(id,1);
             
@@ -103,22 +105,42 @@ contract MultiPartyOracle {
             }
         }
     }
-    function getSender(bytes32 hash, uint8 v, bytes32 r, bytes32 s) constant  internal returns(address) {
+    function getSender(bytes32 hash, bytes sig) constant  internal returns(address) {
 
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
-        return ecrecover(hash, v, r, s) ;
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        if (sig.length != 65)
+          return address(0);
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+        if (v < 27)
+          v += 27;
+
+        if (v != 27 && v != 28)
+            return address(0);
+
+        return ecrecover(hash, v, r, s);
     }
 
     function deltaTally(uint256 queryId, uint256 response) internal{
-        uint256 delta = stor.getDelta(queryId);
+        uint256 delta = stor.getDelta(queryId)*(10**stor.getPrecision(queryId));
         // Int Responses: Array of responses from whitelisted addresses
         uint256[] memory intarr = stor.getResponses(queryId);
         // For each  approved response, always 
         for(uint256 i=0; i < intarr.length; i++){
-            if( response >= intarr[i] - delta && response <= intarr[i] + delta){
+                emit Result1(intarr[i], "tally");
+                emit Result1(intarr[i] - delta,"deltamin");
+                emit Result1(response, "response");
+                emit Result1(intarr[i] + delta,"deltamax");
+            if( intarr[i] - delta <= response  && response <= intarr[i] + delta){
                 stor.tallyResponse(queryId,intarr[i]);
                 if(stor.getTally(queryId, intarr[i]) == stor.getThreshold(queryId)) {
+                    emit Result1(response, "success");
                     stor.addThresholdResponse(queryId, response);
                 }
             }
@@ -129,7 +151,7 @@ contract MultiPartyOracle {
     // @param queryId MPO or dispatch generated MPOID to used to determine client query ID
     // @param response Response to be returned to client
     // @dev query status is 1 if receiving from offchain, 2 if from onchain.
-    function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigr, bytes32[] sigs) external {
+    function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigrs) external {
         require(msg.sender == aggregator, "Invalid aggregator");
         // require(
         //     stor.getAddressStatus(msg.sender) &&
@@ -139,17 +161,13 @@ contract MultiPartyOracle {
         uint256 queryId = stor.getClientQueryId(mpoId);
         address sender;
         for(uint i=0;i<stor.getNumResponders();i++){
-            sender = ecrecover( 
-                        msgHash[i],// keccak256(abi.encodePacked(prefix, responses[i])),
-                        sigv[i],
-                        sigr[i],
-                        sigs[i]);
+            sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             emit ReceivedResponse(queryId, sender, "address after ecrecover");
-            emit Result1(responses[i], "test");
             // If address is in whitelist
             if( stor.getAddressStatus(sender) ){
-                    stor.addResponse(queryId, responses[i], sender);
-                    deltaTally(queryId, responses[i]);
+                    emit Result1(responses[i]*(10**stor.getPrecision(queryId)), "test");
+                    stor.addResponse(queryId, responses[i]*(10**stor.getPrecision(queryId)), sender);
+                    deltaTally(queryId, responses[i]*(10**stor.getPrecision(queryId)));
                 }
         }
 
@@ -158,6 +176,7 @@ contract MultiPartyOracle {
             // If enough answers meet the threshold send back the average of the answers
             if(stor.getThresholdResponses(queryId).length != 0){
                 stor.setQueryStatus(queryId, 2);
+                // emit Result1(uint256(stor.getAverage(stor.getThresholdResponses(queryId))[0]), "avg");
                 dispatch.respondIntArray(queryId, stor.getAverage(stor.getThresholdResponses(queryId)));
             // dispatch.respondIntArray(queryId, responseArr);
             }

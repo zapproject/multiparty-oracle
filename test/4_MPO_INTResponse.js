@@ -5,6 +5,7 @@ const expect = require('chai')
     .use(require('chai-bignumber')(BigNumber))
     .expect;
 var EthUtil = require('ethereumjs-util');
+const BN = require('bn.js');
 
 const Utils = require("./helpers/utils");
 const EVMRevert = require("./helpers/EVMRevert");
@@ -77,13 +78,13 @@ contract('Dispatch', function (accounts) {
     const offchainOwner5 = accounts[7];
     const aggregator = accounts[8];
     const owners = [offchainOwner,offchainOwner2,offchainOwner3,offchainOwner4,offchainOwner5]
-
     const tokensForOwner = new BigNumber("5000e18");
     const tokensForSubscriber = new BigNumber("3000e18");
     const tokensForProvider = new BigNumber("2000e18");
     const approveTokens = new BigNumber("1000e18");
 
-    const params = ["ETH", "BTC", 2,2,100];
+    const params = [utf8ToHex("ETH"), utf8ToHex("BTC"), "0x"+"0".repeat(64-"2".length)+"2" , "0x"+"0".repeat(64-"2".length)+"2" ,"0x"+"0".repeat(64-"c".length)+"c"];
+    console.log(params);
 
     const spec1 = "Offchain";
     const spec2 = "Onchain";
@@ -183,8 +184,9 @@ contract('Dispatch', function (accounts) {
         "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
         "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
         var hash = [];
+        var sig = [];
         var sigv = [];
-        var sigr = [];
+        var sigrs = [];
         var sigs = [];
 
         // const messageToSign = "hello world";
@@ -196,9 +198,10 @@ contract('Dispatch', function (accounts) {
 
                 var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
                 hash.push('0x'+msgHash.toString('hex'));
+                sig.push('0x'+signature.toString('hex'));
                 sigv.push(parseInt(signature.v.toString(10)))
-                sigr.push('0x'+signature.r.toString('hex'))
-                sigs.push('0x'+signature.s.toString('hex'))
+                sigrs.push('0x'+signature.r.toString('hex'))
+                sigrs.push('0x'+signature.s.toString('hex'))
                 // console.log(signatureRPC);
 
 
@@ -209,7 +212,7 @@ contract('Dispatch', function (accounts) {
 
                 console.log(addr)
         }
-        console.log(sigv,sigr,sigs)
+        console.log(sigv,sigrs,sigs)
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 await this.test.MPO.callback(
@@ -217,8 +220,7 @@ contract('Dispatch', function (accounts) {
                     answers,
                     hash,
                     sigv,
-                    sigr,
-                    sigs,
+                    sigrs,
                   {from: aggregator}); 
                   break;  
                 }
@@ -290,8 +292,10 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         "bd23cefc5d9abea6481942d83bfae81d05acc6d101bc157b22c8de839cdc65ff",
         "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
         "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
+        var hash = [];
+        var sig = [];
         var sigv = [];
-        var sigr = [];
+        var sigrs = [];
         var sigs = [];
 
         // const messageToSign = "hello world";
@@ -302,9 +306,11 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
                 // console.log(signature)
 
                 var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
+                hash.push('0x'+msgHash.toString('hex'));
+                sig.push('0x'+signature.toString('hex'));
                 sigv.push(parseInt(signature.v.toString(10)))
-                sigr.push(signature.r.toString('hex'))
-                sigs.push(signature.s.toString('hex'))
+                sigrs.push('0x'+signature.r.toString('hex'))
+                sigrs.push('0x'+signature.s.toString('hex'))
                 // console.log(signatureRPC);
 
 
@@ -313,20 +319,22 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
                 var sender = EthUtil.publicToAddress(pubKey)
                 var addr = EthUtil.bufferToHex(sender)
 
-                // console.log(sender)
+                console.log(addr)
         }
+        console.log(sigv,sigrs,sigs)
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 await this.test.MPO.callback(
                     inclogs[i].args.id,
                     answers,
+                    hash,
                     sigv,
-                    sigr,
-                    sigs,
+                    sigrs,
                   {from: aggregator}); 
                   break;  
                 }
         }
+            
             
         
         let sublogs = await subscriberEvents.get();
