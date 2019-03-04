@@ -174,15 +174,14 @@ contract('Dispatch', function (accounts) {
         await expect(isEventReceived(mpologs, "Incoming")).to.be.equal(true);
         // console.log(inclogs);
         // -m 'help maple me bake pudding cream honey rich smooth crumble sweet treat'
-
+        // threshold=3, delta= 10, precision=2
         var answers=[910,915,920,935,950]
         var privkeys = [
         "39380cb7fd9efffaeeb29d6721491737bd2aa120d14e1e00aa1bafdacec63cb0",
         "8f984e1b478a16603aa44ba3841ecae124bfd6c473f24097ac3d363521e2d4e3",
         "4d723305911d736cf48e16a907c476949406ee3c652cc0aaa27ba69579f25891",
         "bd23cefc5d9abea6481942d83bfae81d05acc6d101bc157b22c8de839cdc65ff",
-        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
-        "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
+        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",]
         var hash = [];
         var sig = [];
         var sigv = [];
