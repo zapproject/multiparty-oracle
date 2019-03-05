@@ -7,10 +7,13 @@ contract MPOStorage is Ownable{
 
 	// check if msg.sender is in global approved list of responders
 	mapping(address => bool) approvedAddress; 
+
 	// Threshold reached, do not accept any more responses
 	mapping(uint256 => uint256) queryStatus;
 	// Tally of each response.
 	mapping(uint256 => mapping(uint256 => uint256) ) responseTally; 
+	mapping(uint256 => mapping(address => uint256) ) addressResponse; 
+	mapping(uint256 => mapping(address => uint256) ) addressTally; 
 	mapping(uint256 => uint256[]) responseArr; 
 	mapping(uint256 => uint256[]) thresholdArr;
 	mapping(uint256 => uint256) average;
@@ -34,9 +37,6 @@ contract MPOStorage is Ownable{
 		threshold[queryId] = _threshold;
 	}
 
-	
-
-	
 	function setClientQueryId(uint256 mpoId, uint256 _clientQueryId) external onlyOwner {
 		mpoToClientId[mpoId] = _clientQueryId;
 	}
@@ -56,8 +56,14 @@ contract MPOStorage is Ownable{
 		responseTally[queryId][response]++;
 
 	}
+	function tallyAddress(uint256 queryId, address responder) external onlyOwner {
+		addressTally[queryId][responder]++;
+
+	}
 	function addResponse(uint256 queryId, uint256 response, address party) external onlyOwner {
 		responseArr[queryId].push(response);
+		addressTally[queryId][party]++;
+		addressResponse[queryId][party] = response;
 		oneAddressResponse[queryId][party] = true;
 	}
 	function addThresholdResponse(uint256 queryId, uint256 response) external onlyOwner {
@@ -87,7 +93,12 @@ contract MPOStorage is Ownable{
 	function getTally(uint256 queryId, uint256 response)external view returns(uint256){
 		return responseTally[queryId][response];
 	}
-
+	function getAddressTally(uint256 queryId, address responder)external view returns(uint256){
+		return addressTally[queryId][responder];
+	}
+	function getAddressResponse(uint256 queryId, address responder)external view returns(uint256){
+		return addressResponse[queryId][responder];
+	}
 	
 	function getClientQueryId(uint256 mpoId) external view returns(uint256){
 		return mpoToClientId[mpoId];
@@ -107,6 +118,9 @@ contract MPOStorage is Ownable{
 	function getResponderAddress(uint index) external view returns(address){
 		return responders[index];
 	}
+	function getResponders() external view returns (address[]){
+		return responders;
+	}
 	function getResponses(uint256 queryId) external view returns(uint256[]){
 		return responseArr[queryId];
 	}
@@ -117,7 +131,7 @@ contract MPOStorage is Ownable{
 		return precision[queryId];
 	}
 	
-	function getAverage(uint[] arr) external view returns(int[]){
+	function getAverage(uint[] arr) external pure returns(int[]){
 		require(arr.length!=0, "Division error");
 		uint total = 0;
 		uint len=0;
@@ -125,7 +139,7 @@ contract MPOStorage is Ownable{
 			if(arr[i]!=0){len++;}
 			total+=arr[i];
 		}
-		require(total>arr[0], "Overflow error");
+		require(total>arr[0], "Overflow error(getAverage)");
 		int[] memory avg = new int[](1);
 		avg[0]=int(total) / int(len);
 		return avg;

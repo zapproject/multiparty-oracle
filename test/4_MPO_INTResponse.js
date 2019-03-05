@@ -83,7 +83,7 @@ contract('Dispatch', function (accounts) {
     const tokensForProvider = new BigNumber("2000e18");
     const approveTokens = new BigNumber("1000e18");
 
-    const params = [utf8ToHex("ETH"), utf8ToHex("BTC"), "0x"+"0".repeat(64-"2".length)+"2" , "0x"+"0".repeat(64-"2".length)+"2" ,"0x"+"0".repeat(64-"c".length)+"c"];
+    const params = [utf8ToHex("ETH"), utf8ToHex("BTC"), "0x"+"0".repeat(64-"3".length)+"3" , "0x"+"0".repeat(64-"2".length)+"2" ,"0x"+"0".repeat(64-"c".length)+"c"];
     console.log(params);
 
     const spec1 = "Offchain";
@@ -175,7 +175,7 @@ contract('Dispatch', function (accounts) {
         // console.log(inclogs);
         // -m 'help maple me bake pudding cream honey rich smooth crumble sweet treat'
         // threshold=3, delta= 10, precision=2
-        var answers=[910,915,920,935,950]
+        var answers=[915,915,920,940,950]
         var privkeys = [
         "39380cb7fd9efffaeeb29d6721491737bd2aa120d14e1e00aa1bafdacec63cb0",
         "8f984e1b478a16603aa44ba3841ecae124bfd6c473f24097ac3d363521e2d4e3",
@@ -193,25 +193,18 @@ contract('Dispatch', function (accounts) {
         for(var i=0;i<5;i++){
                 var msgHash = EthUtil.hashPersonalMessage(new Buffer(answers[i]));
                 var signature = EthUtil.ecsign(msgHash, new Buffer(privkeys[i], 'hex')); 
-                // console.log(signature)
-
                 var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
                 hash.push('0x'+msgHash.toString('hex'));
                 sig.push('0x'+signature.toString('hex'));
                 sigv.push(parseInt(signature.v.toString(10)))
                 sigrs.push('0x'+signature.r.toString('hex'))
                 sigrs.push('0x'+signature.s.toString('hex'))
-                // console.log(signatureRPC);
-
-
-
                 var pubKey = EthUtil.ecrecover(msgHash,signature.v, signature.r, signature.s)
                 var sender = EthUtil.publicToAddress(pubKey)
                 var addr = EthUtil.bufferToHex(sender)
 
-                console.log(addr)
         }
-        console.log(sigv,sigrs,sigs)
+        
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 await this.test.MPO.callback(
@@ -234,7 +227,7 @@ contract('Dispatch', function (accounts) {
                 let result = sublogs[i].args["responses"][0]
                 console.log(result)
                 // Insert data handling here
-                // await expect(String(result)).to.be.equal(String(6450))
+                await expect(String(result)).to.be.equal(String(91666))
                 
                 }
 
@@ -283,14 +276,13 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         // console.log(inclogs);
 
         
-        var answers=[910,915,920,935,950]
+        var answers=[910,930,950,970,990]
         var privkeys = [
         "39380cb7fd9efffaeeb29d6721491737bd2aa120d14e1e00aa1bafdacec63cb0",
         "8f984e1b478a16603aa44ba3841ecae124bfd6c473f24097ac3d363521e2d4e3",
         "4d723305911d736cf48e16a907c476949406ee3c652cc0aaa27ba69579f25891",
         "bd23cefc5d9abea6481942d83bfae81d05acc6d101bc157b22c8de839cdc65ff",
-        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",
-        "6e24533f3a70aeb5d9f6ee5fb4355c8bc5c75ada3bd9a5fd4d99b3ea56baf193"]
+        "c02dbbfdbffef2e85738443c28336c0251512b2ee97ef2c3956bd530ab6fe17f",]
         var hash = [];
         var sig = [];
         var sigv = [];
@@ -302,25 +294,18 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         for(var i=0;i<5;i++){
                 var msgHash = EthUtil.hashPersonalMessage(new Buffer(answers[i]));
                 var signature = EthUtil.ecsign(msgHash, new Buffer(privkeys[i], 'hex')); 
-                // console.log(signature)
-
                 var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
                 hash.push('0x'+msgHash.toString('hex'));
                 sig.push('0x'+signature.toString('hex'));
                 sigv.push(parseInt(signature.v.toString(10)))
                 sigrs.push('0x'+signature.r.toString('hex'))
                 sigrs.push('0x'+signature.s.toString('hex'))
-                // console.log(signatureRPC);
-
-
-
                 var pubKey = EthUtil.ecrecover(msgHash,signature.v, signature.r, signature.s)
                 var sender = EthUtil.publicToAddress(pubKey)
                 var addr = EthUtil.bufferToHex(sender)
 
-                console.log(addr)
         }
-        console.log(sigv,sigrs,sigs)
+        
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
                 await this.test.MPO.callback(
@@ -337,7 +322,7 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
             
         
         let sublogs = await subscriberEvents.get();
-        // await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
+        await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(false);
         
         OracleEvents.stopWatching();
         dispatchEvents.stopWatching();

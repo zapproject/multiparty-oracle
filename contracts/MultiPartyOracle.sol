@@ -72,10 +72,10 @@ contract MultiPartyOracle {
         // endpoint params [from, to, threshold, precision, delta]
         bytes32 hash = keccak256(abi.encodePacked(endpoint));
         uint256 threshold = uint(endpointParams[2]);
-        require(threshold > 0 && threshold <= parties.length,"Invalid Threshold Length");
+        require(threshold > 0 && threshold <= stor.getNumResponders(),"Invalid Threshold Length");
         stor.setThreshold(id, threshold );
         stor.setPrecision(id, uint(endpointParams[3]) );
-        stor.setDelta(id, uint(endpointParams[4]) );
+        stor.setDelta(id, uint(endpointParams[4])*(10**uint(endpointParams[3])) );
         if(hash == keccak256(abi.encodePacked(spec3))) {
             stor.setQueryStatus(id,1);
             uint256 mpoid;
@@ -90,18 +90,55 @@ contract MultiPartyOracle {
         }
     }
 
-    function deltaTally(uint256 queryId, uint256 response) internal{
-        uint256 delta = stor.getDelta(queryId)*(10**stor.getPrecision(queryId));
-        uint256[] memory intarr = stor.getResponses(queryId);
+    // function deltaTally(uint256 queryId, uint256 response) internal{
+    //     uint256 delta = stor.getDelta(queryId);//*(10**stor.getPrecision(queryId));
+    //     emit Result1(delta, "delta");
+    //     uint256[] memory intarr = stor.getResponses(queryId);
+    //     // For each  approved response, compare new response to each, and tally each value that falls within intarr[i] +/- delta
+    //     for(uint256 i=0; i < intarr.length; i++){
+    //         if( intarr[i] == response){
+    //             stor.tallyResponse(queryId,response);
+                
+    //         }
+    //         else{ 
+    //             if( intarr[i] - delta <= response  && response <= intarr[i] + delta){
+    //                 stor.tallyResponse(queryId,intarr[i]);
+    //                 stor.tallyResponse(queryId,response);
+    //                 if(stor.getTally(queryId, intarr[i]) == stor.getThreshold(queryId)) {
+    //                     emit Result1(intarr[i], "threshold met(intarr)");
+    //                     stor.addThresholdResponse(queryId, intarr[i]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //         if(stor.getTally(queryId, response) == stor.getThreshold(queryId)) {
+    //                 emit Result1(response, "threshold met(response)");
+    //                 stor.addThresholdResponse(queryId, response);
+    //         }
+    // }
+    function deltaTally(uint256 queryId, address sender, uint256 response) internal{
+        uint256 delta = stor.getDelta(queryId);
+        address[] memory respondArr = stor.getResponders();
         // For each  approved response, compare new response to each, and tally each value that falls within intarr[i] +/- delta
-        for(uint256 i=0; i < intarr.length; i++){
-            if( intarr[i] - delta <= response  && response <= intarr[i] + delta){
-                stor.tallyResponse(queryId,intarr[i]);
-                if(stor.getTally(queryId, intarr[i]) == stor.getThreshold(queryId)) {
+        for(uint256 i=0; i < respondArr.length; i++){
+            
+            if( stor.getAddressResponse(queryId,respondArr[i]) - delta <= response  &&
+                response <= stor.getAddressResponse(queryId,respondArr[i]) + delta &&
+                respondArr[i] != sender){
+                stor.tallyAddress(queryId,respondArr[i]);
+                stor.tallyAddress(queryId,sender);
+                if(stor.getAddressTally(queryId, respondArr[i]) == stor.getThreshold(queryId)) {
+                    emit Result1(stor.getAddressResponse(queryId,respondArr[i]), "threshold met");
+                    stor.addThresholdResponse(queryId, stor.getAddressResponse(queryId,respondArr[i]));
+                }
+                if(stor.getAddressTally(queryId, sender) == stor.getThreshold(queryId)) {
+                    emit Result1(response, "threshold met(response)");
                     stor.addThresholdResponse(queryId, response);
                 }
             }
+        
         }
+            
     }
 
     // @notice callback used by dispatch or nonproviders once a response has been created for the query
@@ -120,7 +157,7 @@ contract MultiPartyOracle {
             if( stor.getAddressStatus(sender) ){
                     emit Result1(responses[i]*(10**stor.getPrecision(queryId)), "test");
                     stor.addResponse(queryId, responses[i]*(10**stor.getPrecision(queryId)), sender);
-                    deltaTally(queryId, responses[i]*(10**stor.getPrecision(queryId)));
+                    deltaTally(queryId, sender, responses[i]*(10**stor.getPrecision(queryId)));
                 }
         }
 
