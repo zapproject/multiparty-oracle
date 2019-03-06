@@ -7,7 +7,8 @@ contract MPOStorage is Ownable{
 
 	// check if msg.sender is in global approved list of responders
 	mapping(address => bool) approvedAddress; 
-
+	mapping(uint256 => mapping(address => bool) ) isThresholdReached; 
+	mapping(uint256 => bool ) thresholdReached; 
 	// Threshold reached, do not accept any more responses
 	mapping(uint256 => uint256) queryStatus;
 	// Tally of each response.
@@ -47,7 +48,10 @@ contract MPOStorage is Ownable{
 			approvedAddress[responders[i]]=true;
 		}
 	}
-
+	function reachedThreshold(uint256 queryId, address sender) external  onlyOwner{
+		isThresholdReached[queryId][sender] = true;
+		thresholdReached[queryId] = true;
+	}
 	function setQueryStatus(uint queryId, uint256 status) external onlyOwner {
 		queryStatus[queryId]=status;
 	}
@@ -80,6 +84,9 @@ contract MPOStorage is Ownable{
 
 	function onlyOneResponse(uint256 queryId, address party) external view returns(bool) {
         return oneAddressResponse[queryId][party];
+    }
+    function getThresholdStatus(uint256 queryId, address party) external view returns(bool) {
+        return isThresholdReached[queryId][party];
     }
 
     function getAddressStatus(address party) external view returns(bool){
@@ -130,16 +137,22 @@ contract MPOStorage is Ownable{
 	function getPrecision(uint256 queryId) external view returns(uint256){
 		return precision[queryId];
 	}
-	
-	function getAverage(uint[] arr) external pure returns(int[]){
-		require(arr.length!=0, "Division error");
+	function getQueryThreshold(uint queryId)external view returns(bool){
+		return thresholdReached[queryId];
+	}
+	function getAverage(uint256 queryId) external view returns(int[]){
+		require(responders.length!=0, "Division error");
 		uint total = 0;
 		uint len=0;
-		for (uint i =0; i<arr.length;i++){
-			if(arr[i]!=0){len++;}
-			total+=arr[i];
+		
+		for (uint i =0; i < responderLength ;i++){
+			if(isThresholdReached[queryId][responders[i]] ){
+				len++;
+				total+=addressResponse[queryId][responders[i]];
+				
+			}
 		}
-		require(total>arr[0], "Overflow error(getAverage)");
+		require(total<uint(2**256-1), "Overflow error(getAverage)");
 		int[] memory avg = new int[](1);
 		avg[0]=int(total) / int(len);
 		return avg;

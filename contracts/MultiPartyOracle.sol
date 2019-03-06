@@ -22,6 +22,7 @@ contract MultiPartyOracle {
     );
 
     event Result1(uint256 id, string response1);
+    event Result2(bool reached, string response1);
 
     ZapInterface dispatch;
     ZapInterface registry;
@@ -129,11 +130,15 @@ contract MultiPartyOracle {
                 stor.tallyAddress(queryId,sender);
                 if(stor.getAddressTally(queryId, respondArr[i]) == stor.getThreshold(queryId)) {
                     emit Result1(stor.getAddressResponse(queryId,respondArr[i]), "threshold met");
-                    stor.addThresholdResponse(queryId, stor.getAddressResponse(queryId,respondArr[i]));
+                    // stor.addThresholdResponse(queryId, stor.getAddressResponse(queryId,respondArr[i]));
+                    stor.reachedThreshold(queryId,respondArr[i]);
+                    emit Result2(stor.getThresholdStatus(queryId,respondArr[i]), "status");
                 }
                 if(stor.getAddressTally(queryId, sender) == stor.getThreshold(queryId)) {
                     emit Result1(response, "threshold met(response)");
-                    stor.addThresholdResponse(queryId, response);
+                    // stor.addThresholdResponse(queryId, response);
+                    stor.reachedThreshold(queryId,sender);
+                    emit Result2(stor.getThresholdStatus(queryId,sender),"status(response)");
                 }
             }
         
@@ -164,9 +169,12 @@ contract MultiPartyOracle {
         // Query status 0 = not started, 1 = in progress, 2 = complete
         if(stor.getQueryStatus(queryId) == 1) {
             // If enough answers meet the threshold send back the average of the answers
-            if(stor.getThresholdResponses(queryId).length != 0){
+            if(stor.getQueryThreshold(queryId)){
+            // if(stor.getThresholdResponses(queryId).length != 0){
                 stor.setQueryStatus(queryId, 2);
-                dispatch.respondIntArray(queryId, stor.getAverage(stor.getThresholdResponses(queryId)));
+                dispatch.respondIntArray(queryId, stor.getAverage(queryId));
+
+                // dispatch.respondIntArray(queryId, stor.getAverage(stor.getThresholdResponses(queryId)));
                 // dispatch.respondIntArray(queryId, stor.getThresholdResponses(queryId));
             }
         }
