@@ -22,7 +22,6 @@ contract MultiPartyOracle {
     );
 
     event Result1(uint256 id, string response1);
-    event Result2(bool reached, string response1);
 
     ZapInterface dispatch;
     ZapInterface registry;
@@ -48,9 +47,6 @@ contract MultiPartyOracle {
         dispatch = ZapInterface(dispatchAddress);
         stor = MPOStorage(mpoStorageAddress);
         aggregator = _aggregator;
-        // parties = _responders;
-        // stor.setResponders(_responders);
-        // initialize in registry
         bytes32 title = "MultiPartyOracle";
         registry.initiateProvider(12345, title);
         registry.initiateProviderCurve(spec3, curve3, address(0));
@@ -91,32 +87,6 @@ contract MultiPartyOracle {
         }
     }
 
-    // function deltaTally(uint256 queryId, uint256 response) internal{
-    //     uint256 delta = stor.getDelta(queryId);//*(10**stor.getPrecision(queryId));
-    //     emit Result1(delta, "delta");
-    //     uint256[] memory intarr = stor.getResponses(queryId);
-    //     // For each  approved response, compare new response to each, and tally each value that falls within intarr[i] +/- delta
-    //     for(uint256 i=0; i < intarr.length; i++){
-    //         if( intarr[i] == response){
-    //             stor.tallyResponse(queryId,response);
-                
-    //         }
-    //         else{ 
-    //             if( intarr[i] - delta <= response  && response <= intarr[i] + delta){
-    //                 stor.tallyResponse(queryId,intarr[i]);
-    //                 stor.tallyResponse(queryId,response);
-    //                 if(stor.getTally(queryId, intarr[i]) == stor.getThreshold(queryId)) {
-    //                     emit Result1(intarr[i], "threshold met(intarr)");
-    //                     stor.addThresholdResponse(queryId, intarr[i]);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //         if(stor.getTally(queryId, response) == stor.getThreshold(queryId)) {
-    //                 emit Result1(response, "threshold met(response)");
-    //                 stor.addThresholdResponse(queryId, response);
-    //         }
-    // }
     function deltaTally(uint256 queryId, address sender, uint256 response) internal{
         uint256 delta = stor.getDelta(queryId);
         address[] memory respondArr = stor.getResponders();
@@ -129,16 +99,10 @@ contract MultiPartyOracle {
                 stor.tallyAddress(queryId,respondArr[i]);
                 stor.tallyAddress(queryId,sender);
                 if(stor.getAddressTally(queryId, respondArr[i]) == stor.getThreshold(queryId)) {
-                    emit Result1(stor.getAddressResponse(queryId,respondArr[i]), "threshold met");
-                    // stor.addThresholdResponse(queryId, stor.getAddressResponse(queryId,respondArr[i]));
                     stor.reachedThreshold(queryId,respondArr[i]);
-                    emit Result2(stor.getThresholdStatus(queryId,respondArr[i]), "status");
                 }
                 if(stor.getAddressTally(queryId, sender) == stor.getThreshold(queryId)) {
-                    emit Result1(response, "threshold met(response)");
-                    // stor.addThresholdResponse(queryId, response);
                     stor.reachedThreshold(queryId,sender);
-                    emit Result2(stor.getThresholdStatus(queryId,sender),"status(response)");
                 }
             }
         
@@ -157,10 +121,8 @@ contract MultiPartyOracle {
         address sender;
         for(uint i=0;i<stor.getNumResponders();i++){
             sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
-            emit ReceivedResponse(queryId, sender, "address after ecrecover");
             // If address is in whitelist
             if( stor.getAddressStatus(sender) ){
-                    emit Result1(responses[i]*(10**stor.getPrecision(queryId)), "test");
                     stor.addResponse(queryId, responses[i]*(10**stor.getPrecision(queryId)), sender);
                     deltaTally(queryId, sender, responses[i]*(10**stor.getPrecision(queryId)));
                 }
