@@ -99,9 +99,9 @@ contract MultiPartyOracle {
         address sender;
         
         for(uint i=0;i<stor.getNumResponders();i++){
-            sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
+            // sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             // If address is in whitelist
-            if( stor.getAddressStatus(sender) ){
+            // if( stor.getAddressStatus(sender) ){
                     // if(responses[i]!=0){
                     //     numTrue++;
                     // }
@@ -109,7 +109,7 @@ contract MultiPartyOracle {
                     //     numFalse++;
                     // }
                     
-                }
+                // }
         }
         
         // Query status 0 = not started, 1 = in progress, 2 = complete
