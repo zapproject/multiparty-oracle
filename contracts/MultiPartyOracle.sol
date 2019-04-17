@@ -102,12 +102,12 @@ contract MultiPartyOracle {
             sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             // If address is in whitelist
             if( stor.getAddressStatus(sender) ){
-                    if(responses[i]!=0){
-                        numTrue++;
-                    }
-                    else{
-                        numFalse++;
-                    }
+                    // if(responses[i]!=0){
+                    //     numTrue++;
+                    // }
+                    // else{
+                    //     numFalse++;
+                    // }
                     
                 }
         }

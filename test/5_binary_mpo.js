@@ -190,7 +190,7 @@ contract('Dispatch', function (accounts) {
 
         // const messageToSign = "hello world";
         // const privateKey = "43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46";
-        for(var i=0;i<5;i++){
+        for(var i=0;i<4;i++){
                 var msgHash = EthUtil.hashPersonalMessage(new Buffer(answers[i]));
                 var signature = EthUtil.ecsign(msgHash, new Buffer(privkeys[i], 'hex')); 
                 var signatureRPC = EthUtil.toRpcSig(signature.v, signature.r, signature.s)
@@ -207,6 +207,12 @@ contract('Dispatch', function (accounts) {
         console.log("test");
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
+                console.log(
+                    "mpoid", inclogs[i].args.id,
+                    "responses",answers,
+                    "hash",hash,
+                    sigv,
+                    sigrs)
                 await this.test.MPO.callback(
                     inclogs[i].args.id,
                     answers,
@@ -217,7 +223,7 @@ contract('Dispatch', function (accounts) {
                   break;  
                 }
         }
-           
+           console.log("test");
         let sublogs = await subscriberEvents.get();
         console.log(sublogs)
         await expect(isEventReceived(sublogs, "ResultInt")).to.be.equal(true);
@@ -308,6 +314,7 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         
         for(let i in inclogs){
             if(accounts.includes(inclogs[i].args.provider)){
+                
                 await this.test.MPO.callback(
                     inclogs[i].args.id,
                     answers,
