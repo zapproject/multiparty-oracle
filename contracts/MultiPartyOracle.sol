@@ -71,8 +71,7 @@ contract MultiPartyOracle {
         uint256 threshold = uint(endpointParams[2]);
         require(threshold > 0 && threshold <= stor.getNumResponders(),"Invalid Threshold Length");
         stor.setThreshold(id, threshold );
-        stor.setPrecision(id, uint(endpointParams[3]) );
-        stor.setDelta(id, uint(endpointParams[4])*(10**uint(endpointParams[3])) );
+        
         if(hash == keccak256(abi.encodePacked(spec3))) {
             stor.setQueryStatus(id,1);
             uint256 mpoid;
@@ -87,57 +86,47 @@ contract MultiPartyOracle {
         }
     }
 
-    function deltaTally(uint256 queryId, address sender, uint256 response) internal{
-        uint256 delta = stor.getDelta(queryId);
-        address[] memory respondArr = stor.getResponders();
-        // For each  approved response, compare new response to each, and tally each value that falls within intarr[i] +/- delta
-        for(uint256 i=0; i < respondArr.length; i++){
-            
-            if( stor.getAddressResponse(queryId,respondArr[i]) - delta <= response  &&
-                response <= stor.getAddressResponse(queryId,respondArr[i]) + delta &&
-                respondArr[i] != sender){
-                stor.tallyAddress(queryId,respondArr[i]);
-                stor.tallyAddress(queryId,sender);
-                if(stor.getAddressTally(queryId, respondArr[i]) == stor.getThreshold(queryId)) {
-                    stor.reachedThreshold(queryId,respondArr[i]);
-                }
-                if(stor.getAddressTally(queryId, sender) == stor.getThreshold(queryId)) {
-                    stor.reachedThreshold(queryId,sender);
-                }
-            }
-        
-        }
-            
-    }
-
     // @notice callback used by dispatch or nonproviders once a response has been created for the query
     // @param queryId MPO or dispatch generated MPOID to used to determine client query ID
     // @param response Response to be returned to client
     // @dev query status is 1 if receiving from offchain, 2 if from onchain.
+    uint numTrue = 0;
+    uint numFalse = 0;
     function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigrs) external {
         require(msg.sender == aggregator, "Invalid aggregator");
         
         uint256 queryId = stor.getClientQueryId(mpoId);
         address sender;
+        
         for(uint i=0;i<stor.getNumResponders();i++){
             sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             // If address is in whitelist
             if( stor.getAddressStatus(sender) ){
-                    stor.addResponse(queryId, responses[i]*(10**stor.getPrecision(queryId)), sender);
-                    deltaTally(queryId, sender, responses[i]*(10**stor.getPrecision(queryId)));
+                    if(responses[i]!=0){
+                        numTrue++;
+                    }
+                    else{
+                        numFalse++;
+                    }
+                    
                 }
         }
-
+        
         // Query status 0 = not started, 1 = in progress, 2 = complete
         if(stor.getQueryStatus(queryId) == 1) {
             // If enough answers meet the threshold send back the average of the answers
-            if(stor.getQueryThreshold(queryId)){
-            // if(stor.getThresholdResponses(queryId).length != 0){
+            int256[] memory response;
+            if(numTrue>numFalse && numTrue >= stor.getThreshold(queryId)){                
                 stor.setQueryStatus(queryId, 2);
-                dispatch.respondIntArray(queryId, stor.getAverage(queryId));
-
-                // dispatch.respondIntArray(queryId, stor.getAverage(stor.getThresholdResponses(queryId)));
-                // dispatch.respondIntArray(queryId, stor.getThresholdResponses(queryId));
+                response[0]=1;
+                dispatch.respondIntArray(queryId, response);
+                return;
+            }
+            if(numFalse>numTrue && numFalse >= stor.getThreshold(queryId)){
+                stor.setQueryStatus(queryId, 2);
+                response[0]=0;
+                dispatch.respondIntArray(queryId, response);
+                return;
             }
         }
         

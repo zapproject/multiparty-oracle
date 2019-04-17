@@ -74,7 +74,7 @@ contract ERCDotFactory is Ownable {
 
 
     //https://ethereum.stackexchange.com/questions/2519/how-to-convert-a-bytes32-to-string
-    function bytes32ToString(bytes32 x) constant returns (string) {
+    function bytes32ToString(bytes32 x) view returns (string) {
         bytes memory bytesString = new bytes(32);
 
         bytesString = abi.encodePacked(x);
