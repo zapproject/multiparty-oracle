@@ -98,28 +98,27 @@ contract MultiPartyOracle {
         uint256 queryId = stor.getClientQueryId(mpoId);
         address sender;
         
-        for(uint i=0;i<stor.getNumResponders();i++){
-            // sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
+        for(uint i=0;i<msgHash.length;i++){
+            sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             // If address is in whitelist
-            // if( stor.getAddressStatus(sender) ){
-                    // if(responses[i]!=0){
-                    //     numTrue++;
-                    // }
-                    // else{
-                    //     numFalse++;
-                    // }
+            if( stor.getAddressStatus(sender) ){
+                    if(responses[i]!=0){
+                        numTrue++;
+                    }
+                    else{
+                        numFalse++;
+                    }
                     
-                // }
+                }
         }
         
         // Query status 0 = not started, 1 = in progress, 2 = complete
         if(stor.getQueryStatus(queryId) == 1) {
             // If enough answers meet the threshold send back the average of the answers
-            int256[] memory response;
+            int256[] memory response=new int256[](1);
             if(numTrue>numFalse && numTrue >= stor.getThreshold(queryId)){                
                 stor.setQueryStatus(queryId, 2);
                 response[0]=1;
-                dispatch.respondIntArray(queryId, response);
                 return;
             }
             if(numFalse>numTrue && numFalse >= stor.getThreshold(queryId)){
