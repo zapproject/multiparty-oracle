@@ -89,7 +89,8 @@ contract MultiPartyOracle {
     // @notice callback used by dispatch or nonproviders once a response has been created for the query
     // @param queryId MPO or dispatch generated MPOID to used to determine client query ID
     // @param response Response to be returned to client
-    // @dev query status is 1 if receiving from offchain, 2 if from onchain.
+    // @param msgHash, sigv, sigr, sigs to be used in ecrecover
+    // @dev 
     uint numTrue = 0;
     uint numFalse = 0;
     function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigrs) external {
