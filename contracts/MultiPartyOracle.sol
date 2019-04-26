@@ -24,12 +24,16 @@ contract MultiPartyOracle {
     event Result1(uint256 id, string response1);
 
     ZapInterface dispatch;
+    ZapInterface bondage;
     ZapInterface registry;
+    ZapInterface ztoken;
     MPOStorage stor;
     
     //move dispatch address to storage
     address dispatchAddress;
+    address bondageAddress;
     address registryAddress;
+    address ztokenAddress;
     address public storageAddress;
     address aggregator; 
 
@@ -45,6 +49,10 @@ contract MultiPartyOracle {
         registry = ZapInterface(registryAddress);
         dispatchAddress = ZapInterface(_zapCoord).getContract("DISPATCH");
         dispatch = ZapInterface(dispatchAddress);
+        bondageAddress = ZapInterface(_zapCoord).getContract("BONDAGE");
+        bondage = ZapInterface(bondageAddress);
+        ztokenAddress = ZapInterface(_zapCoord).getContract("ZAP_TOKEN");
+        ztoken = ZapInterface(ztokenAddress);
         stor = MPOStorage(mpoStorageAddress);
         aggregator = _aggregator;
         bytes32 title = "MultiPartyOracle";
@@ -129,6 +137,26 @@ contract MultiPartyOracle {
                 return;
             }
         }
+        
+
+    }
+    uint payoutTally = 0;
+    function payout() external {
+        require(stor.getAddressStatus(msg.sender), "Invalid Voter");
+        payoutTally++;
+        
+        if(if(payoutTally > stor.getNumResponders()/2)){
+            uint payout = bondage.getBoundDots(address(this),address(this),"Nonproviders");
+            require(payout>0, "No dots bound")
+            bondage.unbond(address(this),"Nonproviders",payout);
+            payout = ztoken.balanceOf(address(this))/stor.getNumResponders();
+            address[] memory payArr = stor.getResponders();
+            for(uint i=0; i<stor.getNumResponders(); i++) {
+                require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token")
+            }
+            payoutTally=0;
+        }
+        
         
 
     }

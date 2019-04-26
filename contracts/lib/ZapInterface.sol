@@ -9,8 +9,18 @@ contract ZapInterface{
     function initiateProvider(uint256, bytes32) public returns (bool);
     function initiateProviderCurve(bytes32, int256[], address) public returns (bool);
     //bondage
-    function calcZapForDots(address, bytes32, uint256) external view returns (uint256); 
-    function delegateBond(address holderAddress, address oracleAddress, bytes32 endpoint, uint256 numDots) external returns (uint256 boundZap); 
+    function bond(address, bytes32, uint256) external returns(uint256);
+    function unbond(address, bytes32, uint256) external returns (uint256);
+    function delegateBond(address, address, bytes32, uint256) external returns(uint256);
+    function escrowDots(address, address, bytes32, uint256) external returns (bool);
+    function releaseDots(address, address, bytes32, uint256) external returns (bool);
+    function returnDots(address, address, bytes32, uint256) external returns (bool success);
+    function calcZapForDots(address, bytes32, uint256) external view returns (uint256);
+    function currentCostOfDot(address, bytes32, uint256) public view returns (uint256);
+    function getDotsIssued(address, bytes32) public view returns (uint256);
+    function getBoundDots(address, address, bytes32) public view returns (uint256);
+    function getZapBound(address, bytes32) public view returns (uint256);
+    function dotLimit( address, bytes32) public view returns (uint256);
     //dispatch
     function query(address, string, bytes32, bytes32[]) external returns (uint256); 
     function respond1(uint256, string) external returns (bool);
