@@ -44,6 +44,9 @@ contract MPOStorage is Ownable{
  
 	function setResponders(address[] parties) external  onlyOwner{
 		responders=parties;
+		if(responderLength>parties.length){
+			responderLength = parties.length;
+		}
 		for(uint256 i=0; i <responderLength; i++){
 			approvedAddress[responders[i]]=true;
 		}

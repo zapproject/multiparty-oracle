@@ -145,14 +145,14 @@ contract MultiPartyOracle {
         require(stor.getAddressStatus(msg.sender), "Invalid Voter");
         payoutTally++;
         
-        if(if(payoutTally > stor.getNumResponders()/2)){
+        if(payoutTally > stor.getNumResponders()/2){
             uint payout = bondage.getBoundDots(address(this),address(this),"Nonproviders");
-            require(payout>0, "No dots bound")
+            require(payout>0, "No dots bound");
             bondage.unbond(address(this),"Nonproviders",payout);
             payout = ztoken.balanceOf(address(this))/stor.getNumResponders();
             address[] memory payArr = stor.getResponders();
             for(uint i=0; i<stor.getNumResponders(); i++) {
-                require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token")
+                require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token");
             }
             payoutTally=0;
         }

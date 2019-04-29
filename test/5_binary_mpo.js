@@ -336,5 +336,42 @@ it("MultiPartyOracle_1 - Check that MPO can handle threshold not being met.", as
         subscriberEvents.stopWatching();
 
     });
+it("MultiPartyOracle_2 - Check For Payout.", async function() {
+       await prepareTokens.call(this.test, subscriber);
+        await prepareTokens.call(this.test, provider);     
+
+        var MPOAddr = this.test.MPO.address;
+        var subAddr = this.test.subscriber.address; 
+
+        const dispatchEvents = this.test.dispatch.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        dispatchEvents.watch((err, res) => { });
+        
+        const subscriberEvents = this.test.subscriber.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        subscriberEvents.watch((err, res) => { }); 
+
+        const OracleEvents = this.test.MPO.allEvents({ fromBlock: 0, toBlock: 'latest' });
+        OracleEvents.watch((err, res) => { }); 
+        
+        const incomingEvents = this.test.MPO.Incoming({ fromBlock: 0, toBlock: 'latest' });
+        incomingEvents.watch((err, res) => { }); 
+        
+
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: subscriber});
+        await this.test.token.approve(this.test.bondage.address, approveTokens, {from: provider});
+
+        await this.test.bondage.delegateBond(MPOAddr, MPOAddr, "Nonproviders", 100, {from: subscriber}); 
+        var mpobalance = await this.test.bondage.getZapBound(MPOAddr,"Nonproviders",{from: MPOAddr});
+        await console.log(String(mpobalance));
+        await this.test.MPO.payout({from: offchainOwner}); 
+        await this.test.MPO.payout({from: offchainOwner2}); 
+        await this.test.MPO.payout({from: offchainOwner3}); 
+        var balance1 = await this.test.token.balanceOf(offchainOwner);
+        var balance2 = await this.test.token.balanceOf(offchainOwner2);
+        var balance3 = await this.test.token.balanceOf(offchainOwner3);
+        console.log(String(balance1));
+        console.log(String(balance2));
+        console.log(String(balance3));
+        await expect(balance1.toNumber()).to.be.equal(mpobalance/5);
+    });
 
 });
