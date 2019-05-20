@@ -365,6 +365,11 @@ it("MultiPartyOracle_2 - Check For Payout.", async function() {
         await this.test.MPO.payout({from: offchainOwner}); 
         await this.test.MPO.payout({from: offchainOwner2}); 
         await this.test.MPO.payout({from: offchainOwner3}); 
+        await this.test.MPO.withdrawBalance({from: offchainOwner});
+        await this.test.MPO.withdrawBalance({from: offchainOwner2});
+        await this.test.MPO.withdrawBalance({from: offchainOwner3});
+        await this.test.MPO.withdrawBalance({from: offchainOwner4});
+        await this.test.MPO.withdrawBalance({from: offchainOwner5});
         var balance1 = await this.test.token.balanceOf(offchainOwner);
         var balance2 = await this.test.token.balanceOf(offchainOwner2);
         var balance3 = await this.test.token.balanceOf(offchainOwner3);

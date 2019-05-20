@@ -67,10 +67,10 @@ contract MPOStorage is Ownable{
 		addressTally[queryId][responder]++;
 
 	}
-	function addResponse(uint256 queryId, uint256 response, address party) external onlyOwner {
-		responseArr[queryId].push(response);
-		addressTally[queryId][party]++;
-		addressResponse[queryId][party] = response;
+	function addResponse(uint256 queryId, address party) external onlyOwner {
+		// responseArr[queryId].push(response);
+		// addressTally[queryId][party]++;
+		// addressResponse[queryId][party] = response;
 		oneAddressResponse[queryId][party] = true;
 	}
 	function addThresholdResponse(uint256 queryId, uint256 response) external onlyOwner {

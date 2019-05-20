@@ -110,14 +110,14 @@ contract MultiPartyOracle {
         for(uint i=0;i<msgHash.length;i++){
             sender = ecrecover(msgHash[i],sigv[i],sigrs[2*i],sigrs[2*i+1]);
             // If address is in whitelist
-            if( stor.getAddressStatus(sender) ){
+            if( stor.getAddressStatus(sender) && !stor.onlyOneResponse(queryId,sender)){
                     if(responses[i]!=0){
                         numTrue++;
                     }
                     else{
                         numFalse++;
                     }
-                    
+                    stor.addResponse(queryId,sender);
                 }
         }
         
@@ -140,6 +140,7 @@ contract MultiPartyOracle {
         
 
     }
+    mapping(address => uint) credits;
     uint payoutTally = 0;
     function payout() external {
         require(stor.getAddressStatus(msg.sender), "Invalid Voter");
@@ -152,13 +153,25 @@ contract MultiPartyOracle {
             payout = ztoken.balanceOf(address(this))/stor.getNumResponders();
             address[] memory payArr = stor.getResponders();
             for(uint i=0; i<stor.getNumResponders(); i++) {
-                require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token");
+                credits[payArr[i]] += payout;
+                // require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token");
             }
             payoutTally=0;
         }
         
         
 
+    }
+
+    function withdrawBalance() public {
+        uint amount = credits[msg.sender];
+
+        require(amount != 0, "No payout available");
+        require(ztoken.balanceOf(address(this)) >= amount, "Not enough funds in contract");
+
+        credits[msg.sender] = 0;
+
+        require(ztoken.transfer(msg.sender, amount), "Failed to Tranfer Token");
     }
 
   }
