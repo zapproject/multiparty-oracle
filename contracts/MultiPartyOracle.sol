@@ -102,7 +102,7 @@ contract MultiPartyOracle {
     uint numTrue = 0;
     uint numFalse = 0;
     function callback(uint256 mpoId, uint256[] responses, bytes32[] msgHash, uint8[] sigv, bytes32[] sigrs) external {
-        require(msg.sender == aggregator, "Invalid aggregator");
+        // require(msg.sender == aggregator, "Invalid aggregator");
         
         uint256 queryId = stor.getClientQueryId(mpoId);
         address sender;
@@ -147,13 +147,13 @@ contract MultiPartyOracle {
         payoutTally++;
         
         if(payoutTally > stor.getNumResponders()/2){
-            uint payout = bondage.getBoundDots(address(this),address(this),"Nonproviders");
-            require(payout>0, "No dots bound");
-            bondage.unbond(address(this),"Nonproviders",payout);
-            payout = ztoken.balanceOf(address(this))/stor.getNumResponders();
+            uint payoutVal = bondage.getBoundDots(address(this),address(this),"Nonproviders");
+            require(payoutVal>0, "No dots bound");
+            bondage.unbond(address(this),"Nonproviders",payoutVal);
+            payoutVal = ztoken.balanceOf(address(this))/stor.getNumResponders();
             address[] memory payArr = stor.getResponders();
             for(uint i=0; i<stor.getNumResponders(); i++) {
-                credits[payArr[i]] += payout;
+                credits[payArr[i]] += payoutVal;
                 // require(ztoken.transfer(payArr[i],payout), "Failed to Tranfer Token");
             }
             payoutTally=0;
