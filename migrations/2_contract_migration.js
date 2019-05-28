@@ -58,16 +58,19 @@ const deploy = async function(deployer, network) {
     await deployer.deploy(MPOStorage);
     console.log(typeof(MPOStorage.address));
     const storageInstance = await MPOStorage.deployed();
-    await deployer.deploy(MultiPartyOracle, ZapCoordinator.address, MPOStorage.address, "0x00")
+    await deployer.deploy(MultiPartyOracle, ZapCoordinator.address, MPOStorage.address)
     const MPOInstance = await MultiPartyOracle.deployed();
     await storageInstance.transferOwnership(MultiPartyOracle.address);
     await MPOInstance.setup(["0xdbFE35a91EaA4c97456238ee60C48D0708272242",  "0x1096C36e95A3A1cff73d8d006C9dDEaAe5B85eCc",  "0x7e75C377c183A8f69eE57E2cCdAa3A016f5a5903"])
 	}
   else{
+
+    // TODO: handle networks from artifacts. For now, assume Kovan
     await deployer.deploy(MPOStorage);
     console.log(typeof(MPOStorage.address));
     const storageInstance = await MPOStorage.deployed();
-    await deployer.deploy(MultiPartyOracle, "0x0a07859b0063dfa1881f534791516ce7615bd0f7", MPOStorage.address, "0x00")
+
+    await deployer.deploy(MultiPartyOracle, "0x0014f9acd4f4ad4ac65fec3dcee75736fd0a0230", MPOStorage.address)
     const MPOInstance = await MultiPartyOracle.deployed();
     await storageInstance.transferOwnership(MultiPartyOracle.address);
     await MPOInstance.setup(["0xdbFE35a91EaA4c97456238ee60C48D0708272242",  "0x1096C36e95A3A1cff73d8d006C9dDEaAe5B85eCc",  "0x7e75C377c183A8f69eE57E2cCdAa3A016f5a5903"])

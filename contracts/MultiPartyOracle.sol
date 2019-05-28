@@ -43,7 +43,7 @@ contract MultiPartyOracle {
     // @param address registryAddress
     // @param address _dispatchAddress
     // @param address mpoStorageAddress
-    constructor(address _zapCoord, address mpoStorageAddress, address _aggregator) public{
+    constructor(address _zapCoord, address mpoStorageAddress) public{
         // require(_responders.length<=stor.getNumResponders(), "Soft Cap reached");
         registryAddress = ZapInterface(_zapCoord).getContract("REGISTRY");
         registry = ZapInterface(registryAddress);
@@ -54,14 +54,13 @@ contract MultiPartyOracle {
         ztokenAddress = ZapInterface(_zapCoord).getContract("ZAP_TOKEN");
         ztoken = ZapInterface(ztokenAddress);
         stor = MPOStorage(mpoStorageAddress);
-        aggregator = _aggregator;
+    }
+    function setup(address[] _responders) public{
+        stor.setResponders(_responders);
         bytes32 title = "MultiPartyOracle";
         registry.initiateProvider(12345, title);
         registry.initiateProviderCurve(spec3, curve3, address(0));
 
-    }
-    function setup(address[] _responders) public{
-        stor.setResponders(_responders);
     }
     
     // middleware function for handling queries
