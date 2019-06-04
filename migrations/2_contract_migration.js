@@ -63,7 +63,7 @@ const deploy = async function(deployer, network) {
     await storageInstance.transferOwnership(MultiPartyOracle.address);
     await MPOInstance.setup(["0xdbFE35a91EaA4c97456238ee60C48D0708272242",  "0x1096C36e95A3A1cff73d8d006C9dDEaAe5B85eCc",  "0x7e75C377c183A8f69eE57E2cCdAa3A016f5a5903"])
 	}
-  else{
+  else if(network=="kovan"){
 
     // TODO: handle networks from artifacts. For now, assume Kovan
     await deployer.deploy(MPOStorage);
