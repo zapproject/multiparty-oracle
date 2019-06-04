@@ -18,7 +18,7 @@ const deploy = async function(deployer, network) {
   //deployer.deploy(Migrations);
   if(network == "development"){
     console.log("Deploying main contracts on: " + network);
-
+    deployer.deploy(ZapToken);
     // Deploy all the coordinator
     console.log('Deploying the coordinator');
     await deployer.deploy(ZapCoordinator);
