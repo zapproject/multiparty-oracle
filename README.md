@@ -36,7 +36,7 @@ MPOStorage is Ownable. At deployment, owner of MPOStorage should transfer owners
 ## Multiparty Oracle
 ---
 ### Functions
-* `constructor(address registryAddress, address _dispatchAddress, address mpoStorageAddress)`
+* `constructor(address _zapCoord, address mpoStorageAddress))`
     * Stores/initializes dispatch, registry, and MPOStorage addresses MPO will call to.
     * Registers MPO as a provider in registry and initiates provider curves for Offchain, Onchain, and Nonproviders.
 * `setParams(address[] _responders, uintV256 _threshold) public`
@@ -50,13 +50,17 @@ MPOStorage is Ownable. At deployment, owner of MPOStorage should transfer owners
 * `callback(uint256 queryId, string response) external`
     * Called by either the approved providers OR dispatch. Ensures that msg.sender did not issue a response to the query already by checking query status.
     * queryId: Dispatch-generated query Id for MPO to providers.
-    * response: Provider response to query. Can have up to four responses.
+    * response: Provider response to query.
+* `callback(uint256 queryId, int[] responses) external`
+    * Called by either the approved providers OR dispatch. Ensures that msg.sender did not issue a response to the query already by checking query status.
+    * queryId: Dispatch-generated query Id for MPO to providers.
+    * responses: Provider response to query.
+
 ### Endpoints
 Each of the endpoints take in three parameters:
 
 * `(uint256 id, string userQuery, bytes32[] endpointParams)`
     * id: the client ID. For offchain providers, used to help map the dispatch-generated MPO IDs to the client IDs. For non-providers,used to generate an MPO ID before creating the mapping.
     * userQuery and endpointParams: Passed towards the provider no matter what type. Both endpoints one and two call on dispatch, while endpoint 3 creates an Incoming event. In all three cases, after providers are called, contract waits for providers to call MPO's callback function.
-* `Endpoint1`: queries Onchain Providers through dispatch.
-* `Endpoint2`: queries Offchain Providers through dispatch.
-* `Endpoint3`: queries Nonproviders. Rather than querying dispatch, emits an Incoming event that the provider listens for. Provider should check to make sure that provider from event is correct before responding. 
+* `Endpoint1`: queries Zap-Registered Providers through dispatch.
+* `Endpoint2`: queries Nonproviders. Rather than querying dispatch, emits an Incoming event that the provider listens for. Provider should check to make sure that provider from event is correct before responding. 
