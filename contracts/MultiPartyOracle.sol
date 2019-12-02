@@ -127,6 +127,7 @@ contract MultiPartyOracle {
             if(numTrue>numFalse && numTrue >= stor.getThreshold(queryId)){                
                 stor.setQueryStatus(queryId, 2);
                 response[0]=1;
+                dispatch.respondIntArray(queryId, response);
                 return;
             }
             if(numFalse>numTrue && numFalse >= stor.getThreshold(queryId)){
