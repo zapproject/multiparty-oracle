@@ -26,7 +26,7 @@
     "openzeppelin-solidity": "1.10.0",
     "scrypt": "^6.0.3",
     "secp256k1": "^3.5.0",
-    "truffle": "^4.1.12",
+    "truffle": "^5.7.8",
     "truffle-hdwallet-provider": "0.0.5",
     "truffle-hdwallet-provider-privkey": "^0.2.0",
     "uuid-parse": "^1.0.0",
